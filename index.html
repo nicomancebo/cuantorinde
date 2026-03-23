@@ -3,807 +3,539 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CuantoRinde — Compará billeteras, fondos y plazos fijos</title>
+  <title>CuantoRinde — ¿Tu plata está rindiendo lo suficiente?</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
   <style>
-    /* ── Variables ─────────────────────────────── */
     :root {
-      --bg:        #080C14;
-      --surface:   #0F1623;
-      --surface2:  #161E2E;
-      --border:    #1E2D42;
-      --text:      #D9E4F0;
-      --muted:     #4E6480;
-      --accent:    #00CFAA;
-      --accent-dim:#00CFAA22;
-      --blue:      #3B82F6;
-      --red:       #F87171;
-      --radius:    10px;
+      --bg:        #F7F9F7;
+      --white:     #FFFFFF;
+      --surface:   #F0F4F0;
+      --border:    #E2EAE2;
+      --text:      #1A2B1A;
+      --muted:     #7A917A;
+      --green:     #1DB954;
+      --green-dark:#159940;
+      --green-pale:#E8F7ED;
+      --orange:    #FF8C42;
+      --blue:      #3B7DD8;
+      --radius:    16px;
+      --radius-sm: 10px;
+      --shadow:    0 2px 16px rgba(0,0,0,0.06);
+      --shadow-md: 0 4px 32px rgba(0,0,0,0.10);
     }
-
-    /* ── Reset ─────────────────────────────────── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html { font-size: 16px; scroll-behavior: smooth; }
+    body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; line-height: 1.6; }
+    h1,h2,h3,h4 { font-family: 'Bricolage Grotesque', sans-serif; line-height: 1.15; }
 
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'Syne', sans-serif;
-      min-height: 100vh;
-      background-image:
-        radial-gradient(ellipse 80% 50% at 50% -10%, #00CFAA0A 0%, transparent 60%),
-        url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%231E2D42' fill-opacity='0.35'%3E%3Cpath d='M0 40L40 0H20L0 20M40 40V20L20 40'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-    }
+    /* NAV */
+    nav { display:flex; align-items:center; justify-content:space-between; padding:1rem 2rem; background:var(--white); border-bottom:1px solid var(--border); position:sticky; top:0; z-index:100; }
+    .nav-logo { font-family:'Bricolage Grotesque',sans-serif; font-size:1.3rem; font-weight:800; color:var(--text); display:flex; align-items:center; gap:0.4rem; }
+    .nav-logo .dot { color:var(--green); }
+    .nav-badge { background:var(--green-pale); color:var(--green-dark); font-size:0.65rem; font-weight:700; padding:0.2rem 0.5rem; border-radius:99px; letter-spacing:0.04em; }
+    .nav-right { display:flex; align-items:center; gap:0.5rem; }
+    .nav-tab { padding:0.4rem 1rem; border-radius:99px; border:1.5px solid var(--border); background:transparent; color:var(--muted); font-family:'DM Sans',sans-serif; font-size:0.82rem; font-weight:500; cursor:pointer; transition:all 0.18s; }
+    .nav-tab.active, .nav-tab:hover { border-color:var(--green); color:var(--green-dark); background:var(--green-pale); }
 
-    /* ── NAV ───────────────────────────────────── */
-    nav {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 1rem 2rem;
-      border-bottom: 1px solid var(--border);
-      background: rgba(8,12,20,0.85);
-      backdrop-filter: blur(12px);
-      position: sticky;
-      top: 0;
-      z-index: 100;
-    }
-    .nav-logo {
-      font-size: 1.2rem;
-      font-weight: 800;
-      letter-spacing: -0.03em;
-      color: var(--text);
-    }
-    .nav-logo span { color: var(--accent); }
-    .nav-links { display: flex; gap: 0.5rem; }
-    .nav-pill {
-      padding: 0.35rem 0.9rem;
-      border-radius: 999px;
-      border: 1px solid var(--border);
-      background: transparent;
-      color: var(--muted);
-      font-family: 'Syne', sans-serif;
-      font-size: 0.8rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .nav-pill:hover, .nav-pill.active {
-      border-color: var(--accent);
-      color: var(--accent);
-      background: var(--accent-dim);
-    }
+    /* HERO */
+    .hero { max-width:1100px; margin:0 auto; padding:4rem 2rem 2rem; display:grid; grid-template-columns:1fr 1fr; gap:3rem; align-items:center; animation:fadeUp 0.5s ease both; }
+    .hero-text h1 { font-size:clamp(2.2rem,4vw,3.2rem); font-weight:800; margin-bottom:1rem; }
+    .hero-text h1 em { font-style:normal; color:var(--green); position:relative; }
+    .hero-text h1 em::after { content:''; position:absolute; left:0; right:0; bottom:-2px; height:3px; background:var(--green); border-radius:2px; opacity:0.4; }
+    .hero-text p { font-size:1.05rem; color:var(--muted); margin-bottom:1.5rem; max-width:420px; }
+    .hero-chips { display:flex; flex-wrap:wrap; gap:0.5rem; }
+    .chip { display:inline-flex; align-items:center; gap:0.35rem; background:var(--white); border:1.5px solid var(--border); border-radius:99px; padding:0.35rem 0.8rem; font-size:0.8rem; font-weight:500; }
+    .chip .dot-c { width:7px; height:7px; border-radius:50%; background:var(--green); display:inline-block; }
 
-    /* ── HERO ──────────────────────────────────── */
-    .hero {
-      text-align: center;
-      padding: 4rem 2rem 2.5rem;
-      animation: fadeUp 0.6s ease both;
-    }
-    .hero h1 {
-      font-size: clamp(2.4rem, 6vw, 4rem);
-      font-weight: 800;
-      letter-spacing: -0.04em;
-      line-height: 1;
-      margin-bottom: 0.75rem;
-    }
-    .hero h1 .flag { font-size: 0.7em; vertical-align: middle; margin-right: 0.2em; }
-    .hero h1 .accent { color: var(--accent); }
-    .hero p {
-      color: var(--muted);
-      font-size: 1rem;
-      font-weight: 400;
-    }
+    /* CALC CARD */
+    .calc-card { background:var(--white); border:1.5px solid var(--border); border-radius:24px; padding:2rem; box-shadow:var(--shadow-md); }
+    .calc-card h3 { font-size:1rem; font-weight:700; margin-bottom:1.25rem; }
+    .calc-label { font-size:0.78rem; font-weight:600; color:var(--muted); letter-spacing:0.04em; text-transform:uppercase; margin-bottom:0.4rem; }
+    .calc-input-wrap { position:relative; margin-bottom:1rem; }
+    .calc-prefix { position:absolute; left:14px; top:50%; transform:translateY(-50%); font-family:'Bricolage Grotesque',sans-serif; font-weight:700; font-size:1.1rem; color:var(--muted); }
+    .calc-input { width:100%; padding:0.75rem 1rem 0.75rem 2.2rem; border:1.5px solid var(--border); border-radius:var(--radius-sm); font-family:'Bricolage Grotesque',sans-serif; font-size:1.4rem; font-weight:700; color:var(--text); background:var(--surface); outline:none; transition:border-color 0.2s; }
+    .calc-input:focus { border-color:var(--green); }
+    .calc-slider { width:100%; accent-color:var(--green); margin-bottom:0.3rem; }
+    .calc-slider-labels { display:flex; justify-content:space-between; font-size:0.72rem; color:var(--muted); margin-bottom:1rem; }
+    .calc-result { background:var(--green-pale); border:1.5px solid #1DB95433; border-radius:var(--radius-sm); padding:1rem 1.25rem; }
+    .calc-result-row { display:flex; justify-content:space-between; align-items:center; padding:0.25rem 0; }
+    .calc-result-row:not(:last-child) { border-bottom:1px solid #1DB95420; margin-bottom:0.25rem; }
+    .calc-result-label { font-size:0.82rem; color:var(--muted); }
+    .calc-result-value { font-family:'Bricolage Grotesque',sans-serif; font-size:1rem; font-weight:700; color:var(--green-dark); }
+    .calc-result-value.big { font-size:1.4rem; color:var(--green); }
 
-    /* ── STATS BAR ─────────────────────────────── */
-    .stats-bar {
-      display: flex;
-      justify-content: center;
-      gap: 2rem;
-      flex-wrap: wrap;
-      padding: 1.25rem 2rem;
-      border-top: 1px solid var(--border);
-      border-bottom: 1px solid var(--border);
-      background: var(--surface);
-      margin-bottom: 2rem;
-      animation: fadeUp 0.6s 0.1s ease both;
-    }
-    .stat-item { text-align: center; }
-    .stat-label {
-      font-size: 0.7rem;
-      font-weight: 600;
-      color: var(--muted);
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      margin-bottom: 0.2rem;
-    }
-    .stat-value {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 1.15rem;
-      font-weight: 500;
-      color: var(--accent);
-    }
-    .stat-value.loading { color: var(--muted); font-size: 0.85rem; }
+    /* EXPLAINER */
+    .explainer { background:var(--white); border-top:1px solid var(--border); border-bottom:1px solid var(--border); padding:2.5rem 2rem; margin:2rem 0; }
+    .explainer-inner { max-width:1100px; margin:0 auto; }
+    .explainer h2 { font-size:1.5rem; font-weight:800; margin-bottom:1.5rem; text-align:center; }
+    .explainer-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1.5rem; }
+    .explainer-item { text-align:center; padding:1.5rem 1rem; border-radius:var(--radius); background:var(--surface); border:1.5px solid var(--border); }
+    .explainer-icon { font-size:2rem; margin-bottom:0.75rem; }
+    .explainer-item h4 { font-size:0.95rem; font-weight:700; margin-bottom:0.4rem; }
+    .explainer-item p { font-size:0.82rem; color:var(--muted); line-height:1.5; }
 
-    /* ── MAIN LAYOUT ───────────────────────────── */
-    main { max-width: 1000px; margin: 0 auto; padding: 0 1.5rem 4rem; }
+    /* MAIN */
+    main { max-width:1100px; margin:0 auto; padding:0 2rem 4rem; }
 
-    /* ── TABS ──────────────────────────────────── */
-    .tabs {
-      display: flex;
-      gap: 0.25rem;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: calc(var(--radius) + 4px);
-      padding: 0.3rem;
-      margin-bottom: 1.75rem;
-      animation: fadeUp 0.6s 0.15s ease both;
-    }
-    .tab-btn {
-      flex: 1;
-      padding: 0.65rem 1rem;
-      border: none;
-      border-radius: var(--radius);
-      background: transparent;
-      color: var(--muted);
-      font-family: 'Syne', sans-serif;
-      font-size: 0.88rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.22s;
-    }
-    .tab-btn.active {
-      background: var(--surface2);
-      color: var(--text);
-      border: 1px solid var(--border);
-    }
-    .tab-btn:hover:not(.active) { color: var(--text); }
+    /* TABS */
+    .tabs-wrap { display:flex; gap:0.5rem; margin-bottom:2rem; border-bottom:2px solid var(--border); animation:fadeUp 0.5s 0.15s ease both; }
+    .tab-btn { padding:0.75rem 1.5rem; border:none; background:transparent; font-family:'DM Sans',sans-serif; font-size:0.9rem; font-weight:500; color:var(--muted); cursor:pointer; border-bottom:2.5px solid transparent; margin-bottom:-2px; transition:all 0.2s; }
+    .tab-btn.active { color:var(--green-dark); border-bottom-color:var(--green); font-weight:700; }
+    .section { display:none; }
+    .section.active { display:block; animation:fadeUp 0.3s ease both; }
 
-    /* ── SECTION ───────────────────────────────── */
-    .section { display: none; }
-    .section.active { display: block; animation: fadeUp 0.35s ease both; }
+    /* TOP CARDS */
+    .top-section-label { font-size:0.72rem; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; color:var(--muted); margin-bottom:0.75rem; }
+    .top-cards { display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; margin-bottom:2rem; }
+    .top-card { background:var(--white); border:1.5px solid var(--border); border-radius:var(--radius); padding:1.25rem; box-shadow:var(--shadow); position:relative; transition:transform 0.2s, box-shadow 0.2s; }
+    .top-card:hover { transform:translateY(-2px); box-shadow:var(--shadow-md); }
+    .top-card.rank-1 { border-color:var(--green); background:linear-gradient(135deg,#FFFFFF 0%,#F0FBF4 100%); }
+    .rank-badge { position:absolute; top:-10px; left:1rem; background:var(--green); color:white; font-size:0.65rem; font-weight:800; padding:0.2rem 0.6rem; border-radius:99px; letter-spacing:0.04em; }
+    .rank-badge.two { background:var(--blue); }
+    .rank-badge.three { background:var(--orange); }
+    .top-card-header { display:flex; align-items:center; gap:0.6rem; margin-bottom:0.75rem; }
+    .card-logo { width:36px; height:36px; border-radius:10px; background:var(--surface); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; font-family:'Bricolage Grotesque',sans-serif; font-size:0.7rem; font-weight:800; color:var(--green-dark); flex-shrink:0; }
+    .card-name { font-size:0.88rem; font-weight:700; }
+    .card-sub  { font-size:0.72rem; color:var(--muted); }
+    .card-tna-big { font-family:'Bricolage Grotesque',sans-serif; font-size:2.2rem; font-weight:800; color:var(--text); line-height:1; margin-bottom:0.2rem; }
+    .top-card.rank-1 .card-tna-big { color:var(--green); }
+    .card-tna-label { font-size:0.72rem; color:var(--muted); margin-bottom:0.75rem; }
+    .card-monthly { background:var(--surface); border-radius:8px; padding:0.5rem 0.75rem; font-size:0.78rem; }
+    .card-monthly span { font-weight:700; color:var(--green-dark); }
 
-    .section-header {
-      display: flex;
-      align-items: flex-end;
-      justify-content: space-between;
-      margin-bottom: 1rem;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-    }
-    .section-title {
-      font-size: 1rem;
-      font-weight: 700;
-      color: var(--text);
-    }
-    .section-sub {
-      font-size: 0.75rem;
-      color: var(--muted);
-      font-weight: 400;
-      margin-top: 0.15rem;
-    }
-    .refresh-btn {
-      display: flex;
-      align-items: center;
-      gap: 0.4rem;
-      padding: 0.4rem 0.9rem;
-      border: 1px solid var(--border);
-      background: transparent;
-      color: var(--muted);
-      border-radius: 6px;
-      font-family: 'Syne', sans-serif;
-      font-size: 0.75rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .refresh-btn:hover { color: var(--accent); border-color: var(--accent); }
-    .refresh-btn svg { width: 13px; height: 13px; }
-    .refresh-btn.spinning svg { animation: spin 0.8s linear infinite; }
+    /* SECTION HEADER */
+    .section-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem; flex-wrap:wrap; gap:0.5rem; }
+    .section-title { font-size:1.1rem; font-weight:700; }
+    .section-sub { font-size:0.8rem; color:var(--muted); font-weight:400; margin-top:0.1rem; }
+    .refresh-btn { display:flex; align-items:center; gap:0.4rem; padding:0.45rem 1rem; border:1.5px solid var(--border); background:var(--white); color:var(--muted); border-radius:99px; font-family:'DM Sans',sans-serif; font-size:0.78rem; font-weight:600; cursor:pointer; transition:all 0.2s; }
+    .refresh-btn:hover { color:var(--green-dark); border-color:var(--green); }
+    .refresh-btn svg { width:13px; height:13px; }
+    .refresh-btn.spinning svg { animation:spin 0.8s linear infinite; }
 
-    /* ── TABLE ─────────────────────────────────── */
-    .table-wrap {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      overflow: hidden;
-    }
-    table { width: 100%; border-collapse: collapse; }
-    thead tr {
-      border-bottom: 1px solid var(--border);
-    }
-    th {
-      padding: 0.75rem 1.1rem;
-      text-align: left;
-      font-size: 0.7rem;
-      font-weight: 700;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: var(--muted);
-      cursor: pointer;
-      user-select: none;
-      white-space: nowrap;
-    }
-    th:hover { color: var(--text); }
-    th.sorted { color: var(--accent); }
-    th.right, td.right { text-align: right; }
-    tbody tr {
-      border-bottom: 1px solid var(--border);
-      transition: background 0.15s;
-    }
-    tbody tr:last-child { border-bottom: none; }
-    tbody tr:hover { background: var(--surface2); }
-    td {
-      padding: 0.85rem 1.1rem;
-      font-size: 0.88rem;
-    }
-    .td-name {
-      display: flex;
-      align-items: center;
-      gap: 0.7rem;
-    }
-    .entity-logo {
-      width: 30px;
-      height: 30px;
-      border-radius: 6px;
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 0.7rem;
-      font-weight: 700;
-      color: var(--accent);
-      flex-shrink: 0;
-      overflow: hidden;
-    }
-    .entity-logo img { width: 100%; height: 100%; object-fit: cover; }
-    .name-text .primary { font-weight: 600; font-size: 0.88rem; }
-    .name-text .secondary { font-size: 0.72rem; color: var(--muted); margin-top: 0.1rem; }
+    /* TABLE */
+    .table-wrap { background:var(--white); border:1.5px solid var(--border); border-radius:var(--radius); overflow:hidden; box-shadow:var(--shadow); }
+    table { width:100%; border-collapse:collapse; }
+    thead tr { border-bottom:1.5px solid var(--border); background:var(--surface); }
+    th { padding:0.75rem 1.1rem; text-align:left; font-size:0.7rem; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; color:var(--muted); cursor:pointer; user-select:none; white-space:nowrap; }
+    th:hover { color:var(--text); }
+    th.sorted { color:var(--green-dark); }
+    th.right, td.right { text-align:right; }
+    tbody tr { border-bottom:1px solid var(--border); transition:background 0.15s; }
+    tbody tr:last-child { border-bottom:none; }
+    tbody tr:hover { background:var(--surface); }
+    td { padding:0.9rem 1.1rem; font-size:0.88rem; }
+    .td-name { display:flex; align-items:center; gap:0.7rem; }
+    .entity-logo { width:32px; height:32px; border-radius:8px; background:var(--surface); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; font-family:'Bricolage Grotesque',sans-serif; font-size:0.65rem; font-weight:800; color:var(--green-dark); flex-shrink:0; }
+    .name-text .primary { font-weight:600; font-size:0.88rem; }
+    .name-text .secondary { font-size:0.72rem; color:var(--muted); }
+    .rate { font-family:'Bricolage Grotesque',sans-serif; font-weight:700; font-size:1rem; }
+    .rate.high { color:var(--green-dark); }
+    .rate.mid  { color:#2d7a4f; }
+    .rate.low  { color:var(--muted); }
+    .badge-top { display:inline-flex; align-items:center; gap:0.3rem; background:var(--green-pale); color:var(--green-dark); border:1px solid #1DB95433; padding:0.2rem 0.65rem; border-radius:6px; font-family:'Bricolage Grotesque',sans-serif; font-size:0.95rem; font-weight:800; }
+    .monthly-gain { font-size:0.78rem; color:var(--green-dark); background:var(--green-pale); padding:0.15rem 0.5rem; border-radius:5px; white-space:nowrap; }
+    .tipo-tag { display:inline-block; padding:0.18rem 0.6rem; border-radius:5px; font-size:0.68rem; font-weight:700; }
+    .tipo-tag.billetera { background:#EFF6FF; color:#2563EB; border:1px solid #BFDBFE; }
+    .tipo-tag.fci       { background:#F5F3FF; color:#7C3AED; border:1px solid #DDD6FE; }
+    .tipo-tag.mm        { background:#FFFBEB; color:#D97706; border:1px solid #FDE68A; }
 
-    /* ── RATE ──────────────────────────────────── */
-    .rate {
-      font-family: 'JetBrains Mono', monospace;
-      font-weight: 500;
-      font-size: 0.95rem;
-    }
-    .rate.high { color: var(--accent); }
-    .rate.mid  { color: #7DD3B8; }
-    .rate.low  { color: var(--muted); }
-    .rate-badge {
-      display: inline-flex;
-      align-items: center;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 0.95rem;
-      font-weight: 500;
-    }
-    .badge-top {
-      background: var(--accent-dim);
-      color: var(--accent);
-      border: 1px solid #00CFAA44;
-      padding: 0.2rem 0.6rem;
-      border-radius: 5px;
-      font-size: 0.82rem;
-    }
+    /* LOADING */
+    .state-row td { text-align:center; padding:3rem; color:var(--muted); font-size:0.88rem; }
+    .spinner { display:inline-block; width:18px; height:18px; border:2px solid var(--border); border-top-color:var(--green); border-radius:50%; animation:spin 0.7s linear infinite; vertical-align:middle; margin-right:0.5rem; }
+    .demo-badge { display:inline-block; background:#FFFBEB; color:#D97706; border:1px solid #FDE68A; font-size:0.62rem; font-weight:700; padding:0.1rem 0.4rem; border-radius:4px; margin-left:0.4rem; vertical-align:middle; }
 
-    /* ── TIPO TAG ──────────────────────────────── */
-    .tipo-tag {
-      display: inline-block;
-      padding: 0.15rem 0.55rem;
-      border-radius: 4px;
-      font-size: 0.68rem;
-      font-weight: 700;
-      letter-spacing: 0.04em;
-    }
-    .tipo-tag.billetera { background: #3B82F611; color: var(--blue); border: 1px solid #3B82F633; }
-    .tipo-tag.fci       { background: #A855F711; color: #A855F7; border: 1px solid #A855F733; }
-    .tipo-tag.mm        { background: #F59E0B11; color: #F59E0B; border: 1px solid #F59E0B33; }
+    /* GLOSARIO */
+    .glosario { background:var(--white); border:1.5px solid var(--border); border-radius:var(--radius); padding:1.5rem; margin-top:2rem; }
+    .glosario h3 { font-size:0.9rem; font-weight:700; margin-bottom:1rem; }
+    .glosario-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:0.75rem; }
+    .glosario-item { padding:0.75rem; background:var(--surface); border-radius:var(--radius-sm); }
+    .glosario-term { font-family:'Bricolage Grotesque',sans-serif; font-size:0.82rem; font-weight:700; color:var(--green-dark); margin-bottom:0.2rem; }
+    .glosario-def  { font-size:0.78rem; color:var(--muted); line-height:1.4; }
 
-    /* ── LOADING / ERROR ───────────────────────── */
-    .state-row td {
-      text-align: center;
-      padding: 2.5rem;
-      color: var(--muted);
-      font-size: 0.88rem;
-    }
-    .spinner {
-      display: inline-block;
-      width: 18px; height: 18px;
-      border: 2px solid var(--border);
-      border-top-color: var(--accent);
-      border-radius: 50%;
-      animation: spin 0.7s linear infinite;
-      vertical-align: middle;
-      margin-right: 0.5rem;
-    }
-    .error-msg { color: var(--red); }
-    .demo-badge {
-      display: inline-block;
-      background: #F59E0B15;
-      color: #F59E0B;
-      border: 1px solid #F59E0B33;
-      font-size: 0.65rem;
-      font-weight: 700;
-      letter-spacing: 0.06em;
-      padding: 0.1rem 0.45rem;
-      border-radius: 4px;
-      margin-left: 0.5rem;
-      vertical-align: middle;
-    }
+    /* STATS BAR */
+    .stats-bar { display:flex; gap:1rem; flex-wrap:wrap; margin-bottom:2rem; animation:fadeUp 0.5s 0.2s ease both; }
+    .stat-pill { background:var(--white); border:1.5px solid var(--border); border-radius:99px; padding:0.5rem 1.1rem; display:flex; align-items:center; gap:0.5rem; box-shadow:var(--shadow); }
+    .stat-pill-label { font-size:0.72rem; color:var(--muted); font-weight:500; }
+    .stat-pill-value { font-family:'Bricolage Grotesque',sans-serif; font-size:0.95rem; font-weight:800; color:var(--green-dark); }
+    .live-dot { width:7px; height:7px; background:var(--green); border-radius:50%; animation:pulse 2s infinite; flex-shrink:0; }
 
-    /* ── FOOTER ────────────────────────────────── */
-    footer {
-      text-align: center;
-      padding: 2rem;
-      color: var(--muted);
-      font-size: 0.75rem;
-      border-top: 1px solid var(--border);
-      line-height: 1.7;
-    }
-    footer a { color: var(--accent); text-decoration: none; }
+    /* FOOTER */
+    footer { text-align:center; padding:2rem; color:var(--muted); font-size:0.75rem; border-top:1px solid var(--border); line-height:1.8; background:var(--white); }
+    footer a { color:var(--green-dark); text-decoration:none; }
 
-    /* ── LAST UPDATED ──────────────────────────── */
-    .last-updated {
-      font-size: 0.7rem;
-      color: var(--muted);
-      display: flex;
-      align-items: center;
-      gap: 0.3rem;
-    }
-    .live-dot {
-      width: 6px; height: 6px;
-      background: var(--accent);
-      border-radius: 50%;
-      animation: pulse 2s infinite;
-    }
+    @keyframes fadeUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+    @keyframes spin   { to{transform:rotate(360deg)} }
+    @keyframes pulse  { 0%,100%{opacity:1} 50%{opacity:0.3} }
 
-    /* ── ANIMATIONS ────────────────────────────── */
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(14px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50%       { opacity: 0.3; }
-    }
-
-    /* ── RESPONSIVE ────────────────────────────── */
-    @media (max-width: 640px) {
-      nav { padding: 0.75rem 1rem; }
-      .nav-links { gap: 0.3rem; }
-      .stats-bar { gap: 1rem; padding: 1rem; }
-      .hero { padding: 2.5rem 1rem 1.5rem; }
-      main { padding: 0 1rem 3rem; }
-      th, td { padding: 0.65rem 0.75rem; }
-      .hide-mobile { display: none; }
+    @media(max-width:768px) {
+      nav { padding:0.75rem 1rem; }
+      .hero { grid-template-columns:1fr; padding:2rem 1rem 1rem; gap:1.5rem; }
+      .explainer-grid, .top-cards, .glosario-grid { grid-template-columns:1fr; }
+      main { padding:0 1rem 3rem; }
+      .hide-mobile { display:none; }
+      th, td { padding:0.65rem 0.75rem; }
     }
   </style>
 </head>
 <body>
 
-<!-- ── NAV ──────────────────────────────────────── -->
 <nav>
-  <div class="nav-logo">💰 CuantoRinde<span>.ar</span></div>
-  <div class="nav-links">
-    <button class="nav-pill active" onclick="setSection('billeteras')">🏦 Billeteras</button>
-    <button class="nav-pill" onclick="setSection('plazo')">📅 Plazo Fijo</button>
+  <div class="nav-logo">💰 CuantoRinde<span class="dot">.</span>ar <span class="nav-badge">🇦🇷 GRATIS</span></div>
+  <div class="nav-right">
+    <button class="nav-tab active" onclick="switchTab('billeteras')">🏦 Billeteras</button>
+    <button class="nav-tab" onclick="switchTab('plazo')">📅 Plazo Fijo</button>
   </div>
 </nav>
 
-<!-- ── HERO ─────────────────────────────────────── -->
 <div class="hero">
-  <h1><span class="flag">💰</span> Cuanto<span class="accent">Rinde</span></h1>
-  <p>Compará billeteras, fondos y plazos fijos en Argentina — datos actualizados</p>
+  <div class="hero-text">
+    <h1>¿Tu plata está<br><em>rindiendo</em> lo que puede?</h1>
+    <p>Comparamos todas las billeteras y plazos fijos de Argentina para que sepas dónde poner tu plata y cuánto podés ganar — sin tecnicismos.</p>
+    <div class="hero-chips">
+      <span class="chip"><span class="dot-c"></span>Actualizado hoy</span>
+      <span class="chip"><span class="dot-c"></span>100% gratis</span>
+      <span class="chip"><span class="dot-c"></span>Sin registro</span>
+    </div>
+  </div>
+
+  <div class="calc-card">
+    <h3>🧮 Calculá cuánto ganás</h3>
+    <div class="calc-label">¿Cuánta plata querés invertir?</div>
+    <div class="calc-input-wrap">
+      <span class="calc-prefix">$</span>
+      <input type="number" class="calc-input" id="calc-monto" value="100000" min="1000" step="1000" oninput="updateCalc()" />
+    </div>
+    <input type="range" class="calc-slider" id="calc-slider" min="1000" max="5000000" step="1000" value="100000" oninput="syncSlider(this.value)" />
+    <div class="calc-slider-labels"><span>$1.000</span><span>$5.000.000</span></div>
+    <div class="calc-result">
+      <div class="calc-result-row">
+        <span class="calc-result-label">Ganás por mes</span>
+        <span class="calc-result-value big" id="calc-mensual">$—</span>
+      </div>
+      <div class="calc-result-row">
+        <span class="calc-result-label">Ganás por año</span>
+        <span class="calc-result-value" id="calc-anual">$—</span>
+      </div>
+      <div class="calc-result-row">
+        <span class="calc-result-label">En la mejor opción</span>
+        <span class="calc-result-value" id="calc-nombre">—</span>
+      </div>
+    </div>
+  </div>
 </div>
 
-<!-- ── STATS BAR ─────────────────────────────────── -->
-<div class="stats-bar">
-  <div class="stat-item">
-    <div class="stat-label">Mejor TNA billetera</div>
-    <div class="stat-value loading" id="stat-best-billetera">Cargando...</div>
-  </div>
-  <div class="stat-item">
-    <div class="stat-label">Mejor TNA plazo fijo</div>
-    <div class="stat-value loading" id="stat-best-plazo">Cargando...</div>
-  </div>
-  <div class="stat-item">
-    <div class="stat-label">BADLAR Privada</div>
-    <div class="stat-value loading" id="stat-badlar">Cargando...</div>
-  </div>
-  <div class="stat-item">
-    <div class="stat-label">Última actualización</div>
-    <div class="stat-value loading" id="stat-update">—</div>
+<div class="explainer">
+  <div class="explainer-inner">
+    <h2>¿Cómo funciona esto? 🤔</h2>
+    <div class="explainer-grid">
+      <div class="explainer-item">
+        <div class="explainer-icon">🏦</div>
+        <h4>Billeteras y Fondos</h4>
+        <p>Apps como Mercado Pago o Ualá invierten tu saldo automáticamente y te pagan intereses <strong>todos los días</strong>. Podés retirar cuando quieras.</p>
+      </div>
+      <div class="explainer-item">
+        <div class="explainer-icon">📅</div>
+        <h4>Plazo Fijo</h4>
+        <p>Dejás tu plata en el banco por <strong>30 días mínimo</strong> y te pagan más interés. La contra: no podés retirarla antes del vencimiento.</p>
+      </div>
+      <div class="explainer-item">
+        <div class="explainer-icon">📊</div>
+        <h4>¿Qué es la TNA?</h4>
+        <p>Es el porcentaje que ganás por año. Si la TNA es 30%, por cada $100.000 que tenés invertidos, <strong>ganás $30.000 en un año</strong>.</p>
+      </div>
+    </div>
   </div>
 </div>
 
-<!-- ── MAIN ──────────────────────────────────────── -->
 <main>
-
-  <!-- TABS -->
-  <div class="tabs">
-    <button class="tab-btn active" onclick="switchTab('billeteras')">🏦 Billeteras & FCI</button>
-    <button class="tab-btn" onclick="switchTab('plazo')">📅 Plazo Fijo</button>
+  <div class="stats-bar">
+    <div class="stat-pill"><div class="live-dot"></div><span class="stat-pill-label">Mejor billetera</span><span class="stat-pill-value" id="stat-best-billetera">—</span></div>
+    <div class="stat-pill"><div class="live-dot"></div><span class="stat-pill-label">Mejor plazo fijo</span><span class="stat-pill-value" id="stat-best-plazo">—</span></div>
+    <div class="stat-pill"><span class="stat-pill-label">BADLAR</span><span class="stat-pill-value" id="stat-badlar">—</span></div>
+    <div class="stat-pill" style="margin-left:auto"><span class="stat-pill-label">Actualizado</span><span class="stat-pill-value" id="stat-update" style="font-size:0.8rem;color:var(--muted)">—</span></div>
   </div>
 
-  <!-- ── SECTION: BILLETERAS & FCI ───────────────── -->
+  <div class="tabs-wrap">
+    <button class="tab-btn active" id="tab-btn-billeteras" onclick="switchTab('billeteras')">🏦 Billeteras y Fondos</button>
+    <button class="tab-btn" id="tab-btn-plazo" onclick="switchTab('plazo')">📅 Plazo Fijo</button>
+  </div>
+
+  <!-- BILLETERAS -->
   <section id="tab-billeteras" class="section active">
-
-    <div class="section-header">
-      <div>
-        <div class="section-title">Billeteras y Fondos de Inversión</div>
-        <div class="section-sub">TNA anual estimada · Fondos de liquidez inmediata y billeteras virtuales</div>
-      </div>
-      <div style="display:flex;align-items:center;gap:1rem;">
-        <div class="last-updated"><div class="live-dot"></div><span id="update-billeteras">actualizando...</span></div>
-        <button class="refresh-btn" id="refresh-billeteras" onclick="loadBilleteras()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
-          Actualizar
-        </button>
-      </div>
+    <div class="top-section-label">🏆 Top 3 del momento</div>
+    <div class="top-cards" id="top-cards-billeteras">
+      <div style="grid-column:1/-1;text-align:center;padding:2rem;color:var(--muted)"><span class="spinner"></span>Cargando...</div>
     </div>
-
+    <div class="section-header">
+      <div><div class="section-title">Comparación completa</div><div class="section-sub">Tocá el encabezado de cada columna para reordenar</div></div>
+      <button class="refresh-btn" id="refresh-billeteras" onclick="loadBilleteras()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+        Actualizar
+      </button>
+    </div>
     <div class="table-wrap">
       <table>
-        <thead>
-          <tr>
-            <th onclick="sortTable('billeteras','nombre')">Producto</th>
-            <th onclick="sortTable('billeteras','tipo')" class="hide-mobile">Tipo</th>
-            <th onclick="sortTable('billeteras','tna')" class="right sorted">TNA ↕</th>
-            <th onclick="sortTable('billeteras','tea')" class="right hide-mobile">TEA</th>
-            <th class="right hide-mobile">Mínimo</th>
-          </tr>
-        </thead>
-        <tbody id="table-billeteras">
-          <tr class="state-row"><td colspan="5"><span class="spinner"></span>Cargando datos...</td></tr>
-        </tbody>
+        <thead><tr>
+          <th onclick="sortTable('billeteras','nombre')">Producto</th>
+          <th onclick="sortTable('billeteras','tipo')" class="hide-mobile">Tipo</th>
+          <th onclick="sortTable('billeteras','tna')" class="right sorted">Rendimiento anual ↕</th>
+          <th class="right hide-mobile">Ganás por mes*</th>
+          <th class="right hide-mobile">Mínimo</th>
+        </tr></thead>
+        <tbody id="table-billeteras"><tr class="state-row"><td colspan="5"><span class="spinner"></span>Cargando datos...</td></tr></tbody>
       </table>
     </div>
-
+    <div class="glosario">
+      <h3>📖 Pequeño diccionario financiero</h3>
+      <div class="glosario-grid">
+        <div class="glosario-item"><div class="glosario-term">TNA (Tasa Nominal Anual)</div><div class="glosario-def">El % que ganás por año. Si es 30%, por $100.000 ganás $30.000 anuales.</div></div>
+        <div class="glosario-item"><div class="glosario-term">TEA (Tasa Efectiva Anual)</div><div class="glosario-def">Lo que realmente ganás si reinvertís los intereses. Siempre es un poco mayor que la TNA.</div></div>
+        <div class="glosario-item"><div class="glosario-term">FCI (Fondo Común de Inversión)</div><div class="glosario-def">Un fondo donde muchas personas juntan plata para invertir. Las billeteras usan estos fondos para darte rendimiento.</div></div>
+        <div class="glosario-item"><div class="glosario-term">Liquidez inmediata</div><div class="glosario-def">Que podés retirar tu plata cuando quieras, en cualquier momento, sin penalidades.</div></div>
+      </div>
+    </div>
+    <p style="font-size:0.72rem;color:var(--muted);margin-top:0.75rem">*Estimación para $100.000 invertidos. Los rendimientos varían diariamente.</p>
   </section>
 
-  <!-- ── SECTION: PLAZO FIJO ──────────────────────── -->
+  <!-- PLAZO FIJO -->
   <section id="tab-plazo" class="section">
-
-    <div class="section-header">
-      <div>
-        <div class="section-title">Tasas de Plazo Fijo</div>
-        <div class="section-sub">TNA para $100.000 a 30 días · Fuente: BCRA</div>
-      </div>
-      <div style="display:flex;align-items:center;gap:1rem;">
-        <div class="last-updated"><div class="live-dot"></div><span id="update-plazo">actualizando...</span></div>
-        <button class="refresh-btn" id="refresh-plazo" onclick="loadPlazoFijo()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
-          Actualizar
-        </button>
-      </div>
+    <div class="top-section-label">🏆 Top 3 del momento</div>
+    <div class="top-cards" id="top-cards-plazo">
+      <div style="grid-column:1/-1;text-align:center;padding:2rem;color:var(--muted)"><span class="spinner"></span>Cargando...</div>
     </div>
-
+    <div class="section-header">
+      <div><div class="section-title">Tasas de todos los bancos</div><div class="section-sub">TNA para $100.000 a 30 días · Fuente: BCRA</div></div>
+      <button class="refresh-btn" id="refresh-plazo" onclick="loadPlazoFijo()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+        Actualizar
+      </button>
+    </div>
     <div class="table-wrap">
       <table>
-        <thead>
-          <tr>
-            <th onclick="sortTable('plazo','nombre')">Entidad</th>
-            <th onclick="sortTable('plazo','tipo')" class="hide-mobile">Tipo</th>
-            <th onclick="sortTable('plazo','tna')" class="right sorted">TNA ↕</th>
-            <th onclick="sortTable('plazo','tea')" class="right hide-mobile">TEA est.</th>
-          </tr>
-        </thead>
-        <tbody id="table-plazo">
-          <tr class="state-row"><td colspan="4"><span class="spinner"></span>Cargando datos...</td></tr>
-        </tbody>
+        <thead><tr>
+          <th onclick="sortTable('plazo','nombre')">Banco</th>
+          <th onclick="sortTable('plazo','tipo')" class="hide-mobile">Tipo</th>
+          <th onclick="sortTable('plazo','tna')" class="right sorted">Rendimiento anual ↕</th>
+          <th class="right hide-mobile">Ganás por mes*</th>
+        </tr></thead>
+        <tbody id="table-plazo"><tr class="state-row"><td colspan="4"><span class="spinner"></span>Cargando datos...</td></tr></tbody>
       </table>
     </div>
-
+    <div class="glosario" style="margin-top:1.5rem">
+      <h3>📖 ¿Cómo funciona el plazo fijo?</h3>
+      <div class="glosario-grid">
+        <div class="glosario-item"><div class="glosario-term">¿Cuánto tiempo mínimo?</div><div class="glosario-def">El mínimo es 30 días. Durante ese tiempo no podés tocar la plata.</div></div>
+        <div class="glosario-item"><div class="glosario-term">¿Hay riesgo?</div><div class="glosario-def">El plazo fijo bancario tiene garantía del Estado argentino hasta $20 millones por persona.</div></div>
+        <div class="glosario-item"><div class="glosario-term">¿Dónde conviene más?</div><div class="glosario-def">Los bancos privados suelen pagar más que los públicos. Comparalos en la tabla de arriba.</div></div>
+        <div class="glosario-item"><div class="glosario-term">¿Pago impuestos?</div><div class="glosario-def">Las personas físicas no pagan Ganancias por intereses de plazo fijo en pesos.</div></div>
+      </div>
+    </div>
+    <p style="font-size:0.72rem;color:var(--muted);margin-top:0.75rem">*Estimación para $100.000 a 30 días. Verificá la tasa vigente en tu banco antes de invertir.</p>
   </section>
-
 </main>
 
-<!-- ── FOOTER ─────────────────────────────────────── -->
 <footer>
-  Datos de FCI provistos por <a href="https://cafci.org.ar" target="_blank">CAFCI</a> ·
-  Tasas de Plazo Fijo por <a href="https://bcra.gob.ar" target="_blank">BCRA</a><br>
-  Los rendimientos pasados no garantizan rendimientos futuros. · No constituye asesoramiento financiero.
+  Datos de FCI por <a href="https://cafci.org.ar" target="_blank">CAFCI</a> · Tasas de Plazo Fijo por <a href="https://bcra.gob.ar" target="_blank">BCRA</a><br>
+  Los rendimientos pasados no garantizan rendimientos futuros · No constituye asesoramiento financiero<br>
+  <strong>CuantoRinde.ar</strong> es un proyecto independiente y gratuito 🇦🇷
 </footer>
 
-<!-- ── SCRIPTS ────────────────────────────────────── -->
 <script>
-  /* ────────────────────────────────────────────────
-     CONFIG — Cambiá BACKEND por tu URL de producción
-     ──────────────────────────────────────────────── */
-  const CONFIG = {
-    // ⬇ Reemplazá con tu URL de Railway / Render / VPS cuando hagas deploy
-    BACKEND: 'http://localhost:3001',
-    // Fallback directo (pueden fallar por CORS desde el browser sin backend)
-    BCRA_VARIABLE_BADLAR: 'https://api.bcra.gob.ar/estadisticas/v2.0/datosvariable/34/',
-    CAFCI_FONDOS:         'https://api.cafci.org.ar/fondo?estado=1&_include=gerente,clase&limit=80',
-  };
+  const CONFIG = { BACKEND: 'https://rendimientos-backend.onrender.com' };
 
-  // Helper: llama al backend propio
   async function fetchBackend(path) {
     const res = await fetch(`${CONFIG.BACKEND}${path}`, { signal: AbortSignal.timeout(10000) });
-    if (!res.ok) throw new Error(`Backend HTTP ${res.status}`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const json = await res.json();
-    if (!json.data?.length) throw new Error('Sin datos en respuesta del backend');
+    if (!json.data?.length) throw new Error('Sin datos');
     return json;
   }
 
-  /* ────────────────────────────────────────────────
-     DEMO DATA — Se usa si las APIs fallan por CORS
-     ──────────────────────────────────────────────── */
-  // Tasas actualizadas a marzo 2026 (fuentes: Perfil, Cronista, 0223.com.ar)
   const DEMO_BILLETERAS = [
-    { nombre:'Carrefour Banco', subtipo:'Cuenta Digital',      tipo:'billetera', tna:30.0, logo:'CF', min:'Sin mínimo',    link:'https://carrefourbanco.com.ar' },
-    { nombre:'Ualá',            subtipo:'Alpha Ahorro',        tipo:'billetera', tna:29.0, logo:'UL', min:'Sin mínimo',    link:'https://uala.com.ar' },
-    { nombre:'Banco Bica',      subtipo:'Cuenta Remunerada',   tipo:'billetera', tna:27.0, logo:'BC', min:'Sin mínimo',    link:'https://bancobica.com.ar' },
-    { nombre:'Naranja X',       subtipo:'Cuenta Naranja',      tipo:'billetera', tna:27.0, logo:'NX', min:'Sin mínimo',    link:'https://naranjax.com' },
-    { nombre:'Prex',            subtipo:'FCI Liquidez',        tipo:'fci',       tna:23.4, logo:'PX', min:'Sin mínimo',    link:'https://prex.com.ar' },
-    { nombre:'Personal Pay',    subtipo:'Nivel 3',             tipo:'billetera', tna:22.5, logo:'PP', min:'Sin mínimo',    link:'https://personalpay.com.ar' },
-    { nombre:'Mercado Pago',    subtipo:'Mercado Fondo',       tipo:'billetera', tna:21.2, logo:'MP', min:'Sin mínimo',    link:'https://mercadopago.com.ar' },
-    { nombre:'Cocos Pay',       subtipo:'FCI Cocos Daruma',    tipo:'fci',       tna:24.1, logo:'CO', min:'$100',          link:'https://cocos.capital' },
-    { nombre:'Adcap',           subtipo:'FCI Money Market',    tipo:'mm',        tna:24.1, logo:'AD', min:'$1.000',        link:'https://adcap.com.ar' },
-    { nombre:'InvertirOnline',  subtipo:'FCI Liquidez',        tipo:'mm',        tna:23.0, logo:'IO', min:'$1.000',        link:'https://invertironline.com' },
-    { nombre:'Cuenta DNI',      subtipo:'Provincia FCI',       tipo:'billetera', tna:22.0, logo:'DN', min:'Sin mínimo',    link:'https://bpp.com.ar' },
-    { nombre:'BruBank',         subtipo:'Ahorro BruBank',      tipo:'billetera', tna:21.0, logo:'BR', min:'Sin mínimo',    link:'https://brubank.com.ar' },
+    { nombre:'Carrefour Banco', subtipo:'Cuenta Digital',    tipo:'billetera', tna:30.0, logo:'CF', min:'Sin mínimo' },
+    { nombre:'Ualá',            subtipo:'Alpha Ahorro',      tipo:'billetera', tna:29.0, logo:'UL', min:'Sin mínimo' },
+    { nombre:'Banco Bica',      subtipo:'Cuenta Remunerada', tipo:'billetera', tna:27.0, logo:'BC', min:'Sin mínimo' },
+    { nombre:'Naranja X',       subtipo:'Cuenta Naranja',    tipo:'billetera', tna:27.0, logo:'NX', min:'Sin mínimo' },
+    { nombre:'Cocos Pay',       subtipo:'FCI Cocos Daruma',  tipo:'fci',       tna:24.1, logo:'CO', min:'$100' },
+    { nombre:'Adcap',           subtipo:'FCI Money Market',  tipo:'mm',        tna:24.1, logo:'AD', min:'$1.000' },
+    { nombre:'Prex',            subtipo:'FCI Liquidez',      tipo:'fci',       tna:23.4, logo:'PX', min:'Sin mínimo' },
+    { nombre:'InvertirOnline',  subtipo:'FCI Liquidez',      tipo:'mm',        tna:23.0, logo:'IO', min:'$1.000' },
+    { nombre:'Personal Pay',    subtipo:'Nivel 3',           tipo:'billetera', tna:22.5, logo:'PP', min:'Sin mínimo' },
+    { nombre:'Cuenta DNI',      subtipo:'Provincia FCI',     tipo:'billetera', tna:22.0, logo:'DN', min:'Sin mínimo' },
+    { nombre:'Mercado Pago',    subtipo:'Mercado Fondo',     tipo:'billetera', tna:21.2, logo:'MP', min:'Sin mínimo' },
+    { nombre:'BruBank',         subtipo:'Ahorro BruBank',    tipo:'billetera', tna:21.0, logo:'BR', min:'Sin mínimo' },
   ];
 
   const DEMO_PLAZO = [
-    { nombre:'Banco Nación',      tipo:'Público',  tna:33.0, logo:'BN' },
-    { nombre:'BBVA',              tipo:'Privado',  tna:34.5, logo:'BV' },
-    { nombre:'Santander',         tipo:'Privado',  tna:34.0, logo:'ST' },
-    { nombre:'Galicia',           tipo:'Privado',  tna:33.5, logo:'GA' },
-    { nombre:'ICBC',              tipo:'Privado',  tna:34.2, logo:'IC' },
-    { nombre:'Macro',             tipo:'Privado',  tna:33.8, logo:'MA' },
-    { nombre:'Banco Provincia',   tipo:'Público',  tna:33.0, logo:'BP' },
-    { nombre:'HSBC',              tipo:'Privado',  tna:34.0, logo:'HS' },
-    { nombre:'Ciudad',            tipo:'Público',  tna:32.5, logo:'CI' },
-    { nombre:'Supervielle',       tipo:'Privado',  tna:33.5, logo:'SU' },
-    { nombre:'Credicoop',         tipo:'Cooperativo',tna:32.0,logo:'CC'},
-    { nombre:'Patagonia',         tipo:'Privado',  tna:33.0, logo:'PT' },
+    { nombre:'BBVA',            tipo:'Privado',      tna:34.5, logo:'BV' },
+    { nombre:'ICBC',            tipo:'Privado',      tna:34.2, logo:'IC' },
+    { nombre:'Santander',       tipo:'Privado',      tna:34.0, logo:'ST' },
+    { nombre:'HSBC',            tipo:'Privado',      tna:34.0, logo:'HS' },
+    { nombre:'Macro',           tipo:'Privado',      tna:33.8, logo:'MA' },
+    { nombre:'Galicia',         tipo:'Privado',      tna:33.5, logo:'GA' },
+    { nombre:'Supervielle',     tipo:'Privado',      tna:33.5, logo:'SU' },
+    { nombre:'Banco Nación',    tipo:'Público',      tna:33.0, logo:'BN' },
+    { nombre:'Banco Provincia', tipo:'Público',      tna:33.0, logo:'BP' },
+    { nombre:'Patagonia',       tipo:'Privado',      tna:33.0, logo:'PT' },
+    { nombre:'Ciudad',          tipo:'Público',      tna:32.5, logo:'CI' },
+    { nombre:'Credicoop',       tipo:'Cooperativo',  tna:32.0, logo:'CC' },
   ];
 
-  /* ────────────────────────────────────────────────
-     ESTADO
-     ──────────────────────────────────────────────── */
-  let state = {
-    billeteras: { data: [], sortKey: 'tna', sortDir: -1, isDemo: false },
-    plazo:      { data: [], sortKey: 'tna', sortDir: -1, isDemo: false },
-    activeTab: 'billeteras',
+  const state = {
+    billeteras: { data:[], sortKey:'tna', sortDir:-1, isDemo:false },
+    plazo:      { data:[], sortKey:'tna', sortDir:-1, isDemo:false },
+    activeTab:  'billeteras',
   };
 
-  /* ────────────────────────────────────────────────
-     UTILS
-     ──────────────────────────────────────────────── */
-  function fmtTNA(v) { return v != null ? v.toFixed(2) + '%' : '—'; }
-  function calcTEA(tna) { return (Math.pow(1 + tna/100/365, 365) - 1) * 100; }
-  function initials(str) { return str.split(/\s+/).map(w=>w[0]).join('').slice(0,2).toUpperCase(); }
-
-  function getHoy() {
-    const d = new Date(); d.setDate(d.getDate());
-    return d.toISOString().split('T')[0];
-  }
-  function getMesAtras() {
-    const d = new Date(); d.setDate(d.getDate() - 30);
-    return d.toISOString().split('T')[0];
-  }
-  function nowStr() {
-    return new Date().toLocaleTimeString('es-AR', {hour:'2-digit', minute:'2-digit'});
-  }
+  const fmtTNA   = v => v != null ? v.toFixed(2)+'%' : '—';
+  const fmtPesos = v => '$' + Math.round(v).toLocaleString('es-AR');
+  const calcMes  = tna => tna / 100 / 12;
+  const initials = s => s.split(/\s+/).map(w=>w[0]).join('').slice(0,2).toUpperCase();
+  const nowStr   = () => new Date().toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'});
 
   function rateClass(tna, arr) {
-    const max = Math.max(...arr.map(x=>x.tna));
-    const min = Math.min(...arr.map(x=>x.tna));
-    const ratio = (tna - min) / (max - min || 1);
-    if (ratio > 0.66) return 'high';
-    if (ratio > 0.33) return 'mid';
-    return 'low';
+    const max = Math.max(...arr.map(x=>x.tna)), min = Math.min(...arr.map(x=>x.tna));
+    const r = (tna-min)/((max-min)||1);
+    return r > 0.66 ? 'high' : r > 0.33 ? 'mid' : 'low';
   }
-
   function tipoTag(tipo) {
-    const map = {
-      billetera: ['billetera','Billetera'],
-      fci:       ['fci','FCI'],
-      mm:        ['mm','Money Mkt'],
-    };
-    const [cls, label] = map[tipo] || ['fci', tipo];
-    return `<span class="tipo-tag ${cls}">${label}</span>`;
+    const m = {billetera:['billetera','Billetera'],fci:['fci','FCI'],mm:['mm','Money Mkt']};
+    const [c,l] = m[tipo]||['fci',tipo];
+    return `<span class="tipo-tag ${c}">${l}</span>`;
+  }
+  function setRefreshState(id, loading) {
+    const btn = document.getElementById(id);
+    if (btn) { btn.classList.toggle('spinning',loading); btn.disabled = loading; }
   }
 
-  function setRefreshState(btnId, loading) {
-    const btn = document.getElementById(btnId);
-    if (!btn) return;
-    btn.classList.toggle('spinning', loading);
-    btn.disabled = loading;
+  function updateCalc() {
+    const monto = parseFloat(document.getElementById('calc-monto').value)||0;
+    document.getElementById('calc-slider').value = Math.min(monto,5000000);
+    const data = [...state.billeteras.data, ...state.plazo.data];
+    if (!data.length) return;
+    const best = data.sort((a,b)=>b.tna-a.tna)[0];
+    document.getElementById('calc-mensual').textContent = fmtPesos(monto * calcMes(best.tna));
+    document.getElementById('calc-anual').textContent   = fmtPesos(monto * best.tna/100);
+    document.getElementById('calc-nombre').textContent  = best.nombre;
   }
+  function syncSlider(val) { document.getElementById('calc-monto').value=val; updateCalc(); }
 
-  /* ────────────────────────────────────────────────
-     TABS
-     ──────────────────────────────────────────────── */
   function switchTab(tab) {
     state.activeTab = tab;
-    document.querySelectorAll('.tab-btn').forEach((b,i)=>{
-      b.classList.toggle('active', ['billeteras','plazo'][i]===tab);
-    });
-    document.querySelectorAll('.section').forEach(s=>{
-      s.classList.toggle('active', s.id===`tab-${tab}`);
-    });
-    document.querySelectorAll('.nav-pill').forEach((b,i)=>{
-      b.classList.toggle('active', ['billeteras','plazo'][i]===tab);
+    ['billeteras','plazo'].forEach((t,i) => {
+      document.getElementById(`tab-btn-${t}`).classList.toggle('active', t===tab);
+      document.getElementById(`tab-${t}`).classList.toggle('active', t===tab);
+      document.querySelectorAll('.nav-tab')[i].classList.toggle('active', t===tab);
     });
   }
 
-  function setSection(sec) { switchTab(sec); }
+  function renderTopCards(section, containerId) {
+    const data = [...state[section].data].sort((a,b)=>b.tna-a.tna).slice(0,3);
+    const el = document.getElementById(containerId);
+    if (!data.length) { el.innerHTML=''; return; }
+    const ranks=['🥇 El mejor','🥈 Segundo','🥉 Tercero'];
+    const rc=['rank-1','rank-2','rank-3'], bc=['','two','three'];
+    el.innerHTML = data.map((r,i)=>`
+      <div class="top-card ${rc[i]}" style="animation:fadeUp 0.3s ${i*0.08}s ease both">
+        <div class="rank-badge ${bc[i]}">${ranks[i]}</div>
+        <div class="top-card-header">
+          <div class="card-logo">${r.logo||initials(r.nombre)}</div>
+          <div><div class="card-name">${r.nombre}</div><div class="card-sub">${r.subtipo||r.tipo||''}</div></div>
+        </div>
+        <div class="card-tna-big">${fmtTNA(r.tna)}</div>
+        <div class="card-tna-label">por año (TNA)</div>
+        <div class="card-monthly">Por cada $100.000 ganás <span>${fmtPesos(100000*calcMes(r.tna))}/mes</span></div>
+      </div>`).join('');
+  }
 
-  /* ────────────────────────────────────────────────
-     RENDER BILLETERAS
-     ──────────────────────────────────────────────── */
   function renderBilleteras() {
-    const { data, sortKey, sortDir, isDemo } = state.billeteras;
+    const {data,sortKey,sortDir,isDemo} = state.billeteras;
     const sorted = [...data].sort((a,b)=>(a[sortKey]>b[sortKey]?1:-1)*sortDir);
     const max = Math.max(...data.map(x=>x.tna));
-    const tbody = document.getElementById('table-billeteras');
-
-    tbody.innerHTML = sorted.map((r,i) => {
-      const cls = rateClass(r.tna, data);
-      const tea = calcTEA(r.tna);
-      const isTop = r.tna === max;
-      return `
-      <tr style="animation:fadeUp 0.3s ${i*0.03}s ease both">
-        <td>
-          <div class="td-name">
-            <div class="entity-logo">${r.logo || initials(r.nombre)}</div>
-            <div class="name-text">
-              <div class="primary">${r.nombre}${isTop ? ' 🏆' : ''}</div>
-              <div class="secondary">${r.subtipo || ''}${isDemo?'<span class="demo-badge">DEMO</span>':''}</div>
-            </div>
-          </div>
-        </td>
+    document.getElementById('table-billeteras').innerHTML = sorted.map((r,i)=>{
+      const cls=rateClass(r.tna,data), mens=fmtPesos(100000*calcMes(r.tna)), isTop=r.tna===max;
+      return `<tr style="animation:fadeUp 0.3s ${i*0.025}s ease both">
+        <td><div class="td-name"><div class="entity-logo">${r.logo||initials(r.nombre)}</div>
+          <div class="name-text"><div class="primary">${r.nombre}</div>
+          <div class="secondary">${r.subtipo||''}${isDemo?'<span class="demo-badge">DEMO</span>':''}</div></div></div></td>
         <td class="hide-mobile">${tipoTag(r.tipo)}</td>
-        <td class="right">
-          ${isTop
-            ? `<span class="badge-top rate">${fmtTNA(r.tna)}</span>`
-            : `<span class="rate ${cls}">${fmtTNA(r.tna)}</span>`
-          }
-        </td>
-        <td class="right hide-mobile"><span class="rate ${cls}" style="opacity:0.75">${fmtTNA(tea)}</span></td>
-        <td class="right hide-mobile" style="color:var(--muted);font-size:0.8rem">${r.min || '—'}</td>
-      </tr>`;
+        <td class="right">${isTop?`<span class="badge-top">⭐ ${fmtTNA(r.tna)}</span>`:`<span class="rate ${cls}">${fmtTNA(r.tna)}</span>`}</td>
+        <td class="right hide-mobile"><span class="monthly-gain">+${mens}</span></td>
+        <td class="right hide-mobile" style="color:var(--muted);font-size:0.8rem">${r.min||'—'}</td></tr>`;
     }).join('');
-
-    // actualizar stat
     document.getElementById('stat-best-billetera').textContent = fmtTNA(max);
-    document.getElementById('stat-best-billetera').className = 'stat-value';
-    document.getElementById('update-billeteras').textContent = `${nowStr()}${isDemo?' (demo)':''}`;
+    renderTopCards('billeteras','top-cards-billeteras');
+    updateCalc();
   }
 
-  /* ────────────────────────────────────────────────
-     RENDER PLAZO FIJO
-     ──────────────────────────────────────────────── */
   function renderPlazo() {
-    const { data, sortKey, sortDir, isDemo } = state.plazo;
+    const {data,sortKey,sortDir,isDemo} = state.plazo;
     const sorted = [...data].sort((a,b)=>(a[sortKey]>b[sortKey]?1:-1)*sortDir);
     const max = Math.max(...data.map(x=>x.tna));
-    const tbody = document.getElementById('table-plazo');
-
-    tbody.innerHTML = sorted.map((r,i) => {
-      const cls = rateClass(r.tna, data);
-      const tea = calcTEA(r.tna);
-      const isTop = r.tna === max;
-      return `
-      <tr style="animation:fadeUp 0.3s ${i*0.03}s ease both">
-        <td>
-          <div class="td-name">
-            <div class="entity-logo">${r.logo || initials(r.nombre)}</div>
-            <div class="name-text">
-              <div class="primary">${r.nombre}${isTop ? ' 🏆' : ''}</div>
-              <div class="secondary">${r.tipo || ''}${isDemo?'<span class="demo-badge">DEMO</span>':''}</div>
-            </div>
-          </div>
-        </td>
-        <td class="hide-mobile" style="color:var(--muted);font-size:0.82rem">${r.tipo || '—'}</td>
-        <td class="right">
-          ${isTop
-            ? `<span class="badge-top rate">${fmtTNA(r.tna)}</span>`
-            : `<span class="rate ${cls}">${fmtTNA(r.tna)}</span>`
-          }
-        </td>
-        <td class="right hide-mobile"><span class="rate ${cls}" style="opacity:0.75">${fmtTNA(tea)}</span></td>
-      </tr>`;
+    document.getElementById('table-plazo').innerHTML = sorted.map((r,i)=>{
+      const cls=rateClass(r.tna,data), mens=fmtPesos(100000*calcMes(r.tna)), isTop=r.tna===max;
+      return `<tr style="animation:fadeUp 0.3s ${i*0.025}s ease both">
+        <td><div class="td-name"><div class="entity-logo">${r.logo||initials(r.nombre)}</div>
+          <div class="name-text"><div class="primary">${r.nombre}</div>
+          <div class="secondary">${r.tipo||''}${isDemo?'<span class="demo-badge">DEMO</span>':''}</div></div></div></td>
+        <td class="hide-mobile" style="color:var(--muted);font-size:0.82rem">${r.tipo||'—'}</td>
+        <td class="right">${isTop?`<span class="badge-top">⭐ ${fmtTNA(r.tna)}</span>`:`<span class="rate ${cls}">${fmtTNA(r.tna)}</span>`}</td>
+        <td class="right hide-mobile"><span class="monthly-gain">+${mens}</span></td></tr>`;
     }).join('');
-
     document.getElementById('stat-best-plazo').textContent = fmtTNA(max);
-    document.getElementById('stat-best-plazo').className = 'stat-value';
-    document.getElementById('update-plazo').textContent = `${nowStr()}${isDemo?' (demo)':''}`;
+    renderTopCards('plazo','top-cards-plazo');
   }
 
-  /* ────────────────────────────────────────────────
-     SORT
-     ──────────────────────────────────────────────── */
   function sortTable(section, key) {
     const s = state[section];
-    if (s.sortKey === key) s.sortDir *= -1;
-    else { s.sortKey = key; s.sortDir = key === 'tna' ? -1 : 1; }
-    section === 'billeteras' ? renderBilleteras() : renderPlazo();
+    s.sortDir = s.sortKey===key ? s.sortDir*-1 : (key==='tna'?-1:1);
+    s.sortKey = key;
+    section==='billeteras' ? renderBilleteras() : renderPlazo();
   }
 
-  /* ────────────────────────────────────────────────
-     LOAD BILLETERAS  →  backend → demo fallback
-     ──────────────────────────────────────────────── */
   async function loadBilleteras() {
     setRefreshState('refresh-billeteras', true);
     document.getElementById('table-billeteras').innerHTML =
-      `<tr class="state-row"><td colspan="5"><span class="spinner"></span>Cargando fondos...</td></tr>`;
-
+      `<tr class="state-row"><td colspan="5"><span class="spinner"></span>Buscando los mejores rendimientos...</td></tr>`;
     try {
-      // 1️⃣ Intentar backend propio (resuelve CORS + caché)
       const json = await fetchBackend('/api/billeteras');
-      const data = json.data.map(r => ({ ...r, logo: r.logo || initials(r.nombre) }));
-      state.billeteras.data   = data;
+      state.billeteras.data   = json.data.map(r=>({...r,logo:r.logo||initials(r.nombre)}));
       state.billeteras.isDemo = false;
       renderBilleteras();
-    }
-    catch (err) {
-      console.warn('Backend no disponible, usando datos demo:', err.message);
+    } catch(e) {
       state.billeteras.data   = DEMO_BILLETERAS;
       state.billeteras.isDemo = true;
       renderBilleteras();
-      document.getElementById('update-billeteras').textContent =
-        `${nowStr()} · backend offline — mostrando demo`;
-    }
-    finally {
-      setRefreshState('refresh-billeteras', false);
-    }
+    } finally { setRefreshState('refresh-billeteras', false); }
   }
 
-  /* ────────────────────────────────────────────────
-     LOAD PLAZO FIJO  →  backend → demo fallback
-     ──────────────────────────────────────────────── */
   async function loadPlazoFijo() {
     setRefreshState('refresh-plazo', true);
     document.getElementById('table-plazo').innerHTML =
-      `<tr class="state-row"><td colspan="4"><span class="spinner"></span>Cargando tasas...</td></tr>`;
-
+      `<tr class="state-row"><td colspan="4"><span class="spinner"></span>Buscando las mejores tasas...</td></tr>`;
     try {
-      // 1️⃣ Intentar backend propio
       const [plazoJson, badlarJson] = await Promise.all([
         fetchBackend('/api/plazo'),
-        fetchBackend('/api/badlar').catch(() => null),
+        fetchBackend('/api/badlar').catch(()=>null),
       ]);
-
-      state.plazo.data   = plazoJson.data.map(r => ({ ...r, logo: r.logo || initials(r.nombre) }));
+      state.plazo.data   = plazoJson.data.map(r=>({...r,logo:r.logo||initials(r.nombre)}));
       state.plazo.isDemo = false;
-
-      if (badlarJson?.tna) {
-        document.getElementById('stat-badlar').textContent = fmtTNA(badlarJson.tna);
-        document.getElementById('stat-badlar').className = 'stat-value';
-      }
-
+      if (badlarJson?.tna) document.getElementById('stat-badlar').textContent = fmtTNA(badlarJson.tna);
       renderPlazo();
-    }
-    catch (err) {
-      console.warn('Backend no disponible, usando datos demo:', err.message);
+    } catch(e) {
       state.plazo.data   = DEMO_PLAZO;
       state.plazo.isDemo = true;
       renderPlazo();
-    }
-    finally {
+    } finally {
       setRefreshState('refresh-plazo', false);
       document.getElementById('stat-update').textContent = nowStr();
-      document.getElementById('stat-update').className = 'stat-value';
     }
   }
 
-  /* ────────────────────────────────────────────────
-     INIT
-     ──────────────────────────────────────────────── */
-  async function init() {
-    await Promise.all([loadBilleteras(), loadPlazoFijo()]);
-  }
-
-  document.addEventListener('DOMContentLoaded', init);
+  document.addEventListener('DOMContentLoaded', () => {
+    Promise.all([loadBilleteras(), loadPlazoFijo()]);
+  });
 </script>
 </body>
 </html>
