@@ -826,6 +826,9 @@ if (su) su.textContent = nowStr();
 
 setTimeout(cargarDatosReales, 500);
 
+  app.get('/ping', (req, res) => {
+  res.status(200).send('ok');
+});
 </script>
 </body>
 </html>
