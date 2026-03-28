@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <!-- ── SEO BÁSICO ──────────────────────────────── -->
-  <title>Cuanto te Rinde — Compará billeteras, fondos y plazos fijos en Argentina</title>
+  <title>CuantoRinde — Compará billeteras, fondos y plazos fijos en Argentina</title>
   <meta name="description" content="Comparador gratuito de rendimientos financieros en Argentina. Compará Mercado Pago, Ualá, Naranja X, plazos fijos y más. Calculá cuánto ganás con tu plata hoy." />
   <meta name="keywords" content="billeteras virtuales argentina, mejor tasa plazo fijo, mercado pago rendimiento, uala tna, comparar billeteras, cuanto rinde mi plata, fondos comunes inversion, FCI argentina, tasa nominal anual, donde invertir pesos" />
   <meta name="author" content="CuantoRinde.ar" />
@@ -425,410 +425,407 @@
 </footer>
 
 <script>
-  const CONFIG = { BACKEND: 'https://rendimientos-backend.onrender.com' };
+/* ── CONFIG ─────────────────────────────────── */
+var BACKEND = 'https://rendimientos-backend.onrender.com';
 
-  async function fetchBackend(path) {
-    const res = await fetch(`${CONFIG.BACKEND}${path}`, { signal: AbortSignal.timeout(65000) });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const json = await res.json();
-    if (!json.data?.length) throw new Error('Sin datos');
-    return json;
+/* ── DATOS DEMO ─────────────────────────────── */
+var DEMO_B = [
+  {nombre:'Carrefour Banco', subtipo:'Cuenta Digital',    tipo:'billetera', tna:30.0, logo:'CF', min:'Sin mínimo'},
+  {nombre:'Ualá',            subtipo:'Alpha Ahorro',      tipo:'billetera', tna:29.0, logo:'UL', min:'Sin mínimo'},
+  {nombre:'Banco Bica',      subtipo:'Cuenta Remunerada', tipo:'billetera', tna:27.0, logo:'BC', min:'Sin mínimo'},
+  {nombre:'Naranja X',       subtipo:'Cuenta Naranja',    tipo:'billetera', tna:27.0, logo:'NX', min:'Sin mínimo'},
+  {nombre:'Cocos Pay',       subtipo:'FCI Cocos Daruma',  tipo:'fci',       tna:24.1, logo:'CO', min:'$100'},
+  {nombre:'Adcap',           subtipo:'FCI Money Market',  tipo:'mm',        tna:24.1, logo:'AD', min:'$1.000'},
+  {nombre:'Prex',            subtipo:'FCI Liquidez',      tipo:'fci',       tna:23.4, logo:'PX', min:'Sin mínimo'},
+  {nombre:'InvertirOnline',  subtipo:'FCI Liquidez',      tipo:'mm',        tna:23.0, logo:'IO', min:'$1.000'},
+  {nombre:'Personal Pay',    subtipo:'Nivel 3',           tipo:'billetera', tna:22.5, logo:'PP', min:'Sin mínimo'},
+  {nombre:'Cuenta DNI',      subtipo:'Provincia FCI',     tipo:'billetera', tna:22.0, logo:'DN', min:'Sin mínimo'},
+  {nombre:'Mercado Pago',    subtipo:'Mercado Fondo',     tipo:'billetera', tna:21.2, logo:'MP', min:'Sin mínimo'},
+  {nombre:'BruBank',         subtipo:'Ahorro BruBank',    tipo:'billetera', tna:21.0, logo:'BR', min:'Sin mínimo'}
+];
+var DEMO_P = [
+  {nombre:'BBVA',           tipo:'Privado',     tna:34.5, logo:'BV'},
+  {nombre:'ICBC',           tipo:'Privado',     tna:34.2, logo:'IC'},
+  {nombre:'Santander',      tipo:'Privado',     tna:34.0, logo:'ST'},
+  {nombre:'HSBC',           tipo:'Privado',     tna:34.0, logo:'HS'},
+  {nombre:'Macro',          tipo:'Privado',     tna:33.8, logo:'MA'},
+  {nombre:'Galicia',        tipo:'Privado',     tna:33.5, logo:'GA'},
+  {nombre:'Supervielle',    tipo:'Privado',     tna:33.5, logo:'SU'},
+  {nombre:'Banco Nacion',   tipo:'Publico',     tna:33.0, logo:'BN'},
+  {nombre:'Banco Provincia',tipo:'Publico',     tna:33.0, logo:'BP'},
+  {nombre:'Patagonia',      tipo:'Privado',     tna:33.0, logo:'PT'},
+  {nombre:'Ciudad',         tipo:'Publico',     tna:32.5, logo:'CI'},
+  {nombre:'Credicoop',      tipo:'Cooperativo', tna:32.0, logo:'CC'}
+];
+
+/* ── ESTADO ─────────────────────────────────── */
+var estado = {
+  billeteras: {data: DEMO_B.slice(), isDemo: true},
+  plazo:      {data: DEMO_P.slice(), isDemo: true}
+};
+var pstore = {};
+
+/* ── UTILS ──────────────────────────────────── */
+function fmtTNA(v) { return v != null ? v.toFixed(2) + '%' : '—'; }
+function fmtPesos(v) { return '$' + Math.round(v).toLocaleString('es-AR'); }
+function calcMes(tna) { return tna / 100 / 12; }
+function initials(s) {
+  var parts = s.split(' ');
+  var r = '';
+  for (var i = 0; i < Math.min(parts.length, 2); i++) r += parts[i][0] || '';
+  return r.toUpperCase();
+}
+function nowStr() { return new Date().toLocaleTimeString('es-AR', {hour:'2-digit', minute:'2-digit'}); }
+function rateClass(tna, arr) {
+  var mx = arr[0].tna, mn = arr[0].tna;
+  for (var i = 1; i < arr.length; i++) { if (arr[i].tna > mx) mx = arr[i].tna; if (arr[i].tna < mn) mn = arr[i].tna; }
+  var r = (tna - mn) / ((mx - mn) || 1);
+  return r > 0.66 ? 'high' : r > 0.33 ? 'mid' : 'low';
+}
+function tipoTag(tipo) {
+  var map = {billetera: 'Billetera', fci: 'FCI', mm: 'Money Mkt'};
+  var cls = map[tipo] ? tipo : 'fci';
+  var label = map[tipo] || tipo;
+  return '<span class="tipo-tag ' + cls + '">' + label + '</span>';
+}
+
+/* ── TABS ───────────────────────────────────── */
+function switchTab(tab) {
+  var tabs = ['billeteras', 'plazo'];
+  for (var i = 0; i < tabs.length; i++) {
+    var t = tabs[i];
+    var btn = document.getElementById('tab-btn-' + t);
+    var sec = document.getElementById('tab-' + t);
+    if (btn) btn.classList.toggle('active', t === tab);
+    if (sec) sec.classList.toggle('active', t === tab);
+  }
+  var navTabs = document.querySelectorAll('.nav-tab');
+  for (var j = 0; j < navTabs.length; j++) {
+    navTabs[j].classList.toggle('active', ['billeteras','plazo'][j] === tab);
+  }
+}
+
+/* ── CALCULADORA ────────────────────────────── */
+function updateCalc() {
+  var el = document.getElementById('calc-monto');
+  if (!el) return;
+  var monto = parseFloat(el.value) || 0;
+  var sl = document.getElementById('calc-slider');
+  if (sl) sl.value = Math.min(monto, 5000000);
+  var data = estado.billeteras.data;
+  if (!data.length) return;
+  var best = data[0];
+  for (var i = 1; i < data.length; i++) { if (data[i].tna > best.tna) best = data[i]; }
+  var em = document.getElementById('calc-mensual');
+  var ea = document.getElementById('calc-anual');
+  var en = document.getElementById('calc-nombre');
+  if (em) em.textContent = fmtPesos(monto * calcMes(best.tna));
+  if (ea) ea.textContent = fmtPesos(monto * best.tna / 100);
+  if (en) en.textContent = best.nombre;
+}
+function syncSlider(val) {
+  var el = document.getElementById('calc-monto');
+  if (el) el.value = val;
+  updateCalc();
+}
+
+/* ── TOP 3 CARDS ────────────────────────────── */
+function renderTopCards(section, containerId) {
+  var el = document.getElementById(containerId);
+  if (!el) return;
+  var data = estado[section].data.slice().sort(function(a,b){return b.tna-a.tna;}).slice(0,3);
+  if (!data.length) { el.innerHTML = ''; return; }
+  var ranks = ['El mejor', 'Segundo', 'Tercero'];
+  var emojis = ['🥇','🥈','🥉'];
+  var rclass = ['rank-1','rank-2','rank-3'];
+  var bclass = ['','two','three'];
+  var html = '';
+  for (var i = 0; i < data.length; i++) {
+    var r = data[i];
+    html += '<div class="top-card ' + rclass[i] + '">' +
+      '<div class="rank-badge ' + bclass[i] + '">' + emojis[i] + ' ' + ranks[i] + '</div>' +
+      '<div class="top-card-header">' +
+        '<div class="card-logo">' + (r.logo || initials(r.nombre)) + '</div>' +
+        '<div><div class="card-name">' + r.nombre + '</div>' +
+        '<div class="card-sub">' + (r.subtipo || r.tipo || '') + '</div></div>' +
+      '</div>' +
+      '<div class="card-tna-big">' + fmtTNA(r.tna) + '</div>' +
+      '<div class="card-tna-label">por año (TNA)</div>' +
+      '<div class="card-monthly">Por cada $100.000 ganas <span>' + fmtPesos(100000 * calcMes(r.tna)) + '/mes</span></div>' +
+    '</div>';
+  }
+  el.innerHTML = html;
+}
+
+/* ── RENDER BILLETERAS ──────────────────────── */
+function renderBilleteras() {
+  var s = estado.billeteras;
+  var data = s.data;
+  var isDemo = s.isDemo;
+  var sorted = data.slice().sort(function(a,b){return b.tna - a.tna;});
+  var max = sorted[0] ? sorted[0].tna : 0;
+  var html = '';
+  for (var i = 0; i < sorted.length; i++) {
+    var r = sorted[i];
+    var pid = 'b_' + i;
+    pstore[pid] = {producto: r, isDemo: isDemo};
+    var cls = rateClass(r.tna, data);
+    var mens = fmtPesos(100000 * calcMes(r.tna));
+    var isTop = r.tna === max;
+    var rateHtml = isTop
+      ? '<span class="badge-top">⭐ ' + fmtTNA(r.tna) + '</span>'
+      : '<span class="rate ' + cls + '">' + fmtTNA(r.tna) + '</span>';
+    var demoHtml = isDemo ? '<span class="demo-badge">DEMO</span>' : '';
+    html += '<tr onclick="openModal(\'' + pid + '\')" style="cursor:pointer">' +
+      '<td><div class="td-name"><div class="entity-logo">' + (r.logo||initials(r.nombre)) + '</div>' +
+      '<div class="name-text"><div class="primary">' + r.nombre + '</div>' +
+      '<div class="secondary">' + (r.subtipo||'') + demoHtml + '</div></div></div></td>' +
+      '<td class="hide-mobile">' + tipoTag(r.tipo) + '</td>' +
+      '<td class="right">' + rateHtml + '</td>' +
+      '<td class="right hide-mobile"><span class="monthly-gain">+' + mens + '</span></td>' +
+      '<td class="right hide-mobile" style="color:var(--muted);font-size:0.8rem">' + (r.min||'—') + '</td>' +
+    '</tr>';
+  }
+  var tb = document.getElementById('table-billeteras');
+  if (tb) tb.innerHTML = html;
+  var sb = document.getElementById('stat-best-billetera');
+  if (sb) sb.textContent = fmtTNA(max);
+  renderTopCards('billeteras', 'top-cards-billeteras');
+  updateCalc();
+}
+
+/* ── RENDER PLAZO ───────────────────────────── */
+function renderPlazo() {
+  var s = estado.plazo;
+  var data = s.data;
+  var isDemo = s.isDemo;
+  var sorted = data.slice().sort(function(a,b){return b.tna - a.tna;});
+  var max = sorted[0] ? sorted[0].tna : 0;
+  var html = '';
+  for (var i = 0; i < sorted.length; i++) {
+    var r = sorted[i];
+    var pid = 'p_' + i;
+    pstore[pid] = {producto: r, isDemo: isDemo};
+    var cls = rateClass(r.tna, data);
+    var mens = fmtPesos(100000 * calcMes(r.tna));
+    var isTop = r.tna === max;
+    var rateHtml = isTop
+      ? '<span class="badge-top">⭐ ' + fmtTNA(r.tna) + '</span>'
+      : '<span class="rate ' + cls + '">' + fmtTNA(r.tna) + '</span>';
+    var demoHtml = isDemo ? '<span class="demo-badge">DEMO</span>' : '';
+    html += '<tr onclick="openModal(\'' + pid + '\')" style="cursor:pointer">' +
+      '<td><div class="td-name"><div class="entity-logo">' + (r.logo||initials(r.nombre)) + '</div>' +
+      '<div class="name-text"><div class="primary">' + r.nombre + '</div>' +
+      '<div class="secondary">' + (r.tipo||'') + demoHtml + '</div></div></div></td>' +
+      '<td class="hide-mobile" style="color:var(--muted);font-size:0.82rem">' + (r.tipo||'—') + '</td>' +
+      '<td class="right">' + rateHtml + '</td>' +
+      '<td class="right hide-mobile"><span class="monthly-gain">+' + mens + '</span></td>' +
+    '</tr>';
+  }
+  var tp = document.getElementById('table-plazo');
+  if (tp) tp.innerHTML = html;
+  var sp = document.getElementById('stat-best-plazo');
+  if (sp) sp.textContent = fmtTNA(max);
+  renderTopCards('plazo', 'top-cards-plazo');
+}
+
+/* ── SORT ───────────────────────────────────── */
+function sortTable(section, key) {
+  var s = estado[section];
+  s.data.sort(function(a,b) {
+    if (a[key] < b[key]) return 1;
+    if (a[key] > b[key]) return -1;
+    return 0;
+  });
+  if (section === 'billeteras') renderBilleteras();
+  else renderPlazo();
+}
+
+/* ── FETCH BACKEND ──────────────────────────── */
+function cargarDatosReales() {
+  fetch(BACKEND + '/api/billeteras')
+    .then(function(r) { return r.json(); })
+    .then(function(json) {
+      if (json.data && json.data.length) {
+        estado.billeteras.data = json.data;
+        estado.billeteras.isDemo = false;
+        renderBilleteras();
+      }
+    })
+    .catch(function() {});
+
+  fetch(BACKEND + '/api/plazo')
+    .then(function(r) { return r.json(); })
+    .then(function(json) {
+      if (json.data && json.data.length) {
+        estado.plazo.data = json.data;
+        estado.plazo.isDemo = false;
+        renderPlazo();
+      }
+    })
+    .catch(function() {});
+
+  fetch(BACKEND + '/api/badlar')
+    .then(function(r) { return r.json(); })
+    .then(function(json) {
+      if (json.tna) {
+        var el = document.getElementById('stat-badlar');
+        if (el) el.textContent = fmtTNA(json.tna);
+      }
+    })
+    .catch(function() {});
+}
+
+/* ── MODAL ──────────────────────────────────── */
+function openModal(pid) {
+  var entry = pstore[pid];
+  if (!entry) return;
+  var r = entry.producto;
+  var isDemo = entry.isDemo;
+
+  var historial = generarHistorial(r.tna);
+  var tnaHoy = historial[historial.length - 1];
+  var tnaAntes = historial[0];
+  var diff = +(tnaHoy - tnaAntes).toFixed(2);
+  var alcista = diff >= 0;
+
+  document.getElementById('modal-logo').textContent    = r.logo || initials(r.nombre);
+  document.getElementById('modal-nombre').textContent  = r.nombre;
+  document.getElementById('modal-subtipo').textContent = r.subtipo || r.tipo || '';
+  document.getElementById('modal-tna').textContent     = fmtTNA(tnaHoy);
+  document.getElementById('modal-tna-old').textContent = fmtTNA(tnaAntes);
+
+  var tbox = document.getElementById('modal-trend-box');
+  var tel  = document.getElementById('modal-trend');
+  if (alcista) {
+    tbox.style.background = '#E8F7ED';
+    tbox.style.border = '1px solid #1DB95433';
+    tel.style.color = 'var(--green-dark)';
+    tel.textContent = '📈 +' + diff + '%';
+  } else {
+    tbox.style.background = '#FEF2F2';
+    tbox.style.border = '1px solid #FECACA';
+    tel.style.color = '#DC2626';
+    tel.textContent = '📉 ' + diff + '%';
   }
 
-  const DEMO_BILLETERAS = [
-    { nombre:'Carrefour Banco', subtipo:'Cuenta Digital',    tipo:'billetera', tna:30.0, logo:'CF', min:'Sin mínimo' },
-    { nombre:'Ualá',            subtipo:'Alpha Ahorro',      tipo:'billetera', tna:29.0, logo:'UL', min:'Sin mínimo' },
-    { nombre:'Banco Bica',      subtipo:'Cuenta Remunerada', tipo:'billetera', tna:27.0, logo:'BC', min:'Sin mínimo' },
-    { nombre:'Naranja X',       subtipo:'Cuenta Naranja',    tipo:'billetera', tna:27.0, logo:'NX', min:'Sin mínimo' },
-    { nombre:'Cocos Pay',       subtipo:'FCI Cocos Daruma',  tipo:'fci',       tna:24.1, logo:'CO', min:'$100' },
-    { nombre:'Adcap',           subtipo:'FCI Money Market',  tipo:'mm',        tna:24.1, logo:'AD', min:'$1.000' },
-    { nombre:'Prex',            subtipo:'FCI Liquidez',      tipo:'fci',       tna:23.4, logo:'PX', min:'Sin mínimo' },
-    { nombre:'InvertirOnline',  subtipo:'FCI Liquidez',      tipo:'mm',        tna:23.0, logo:'IO', min:'$1.000' },
-    { nombre:'Personal Pay',    subtipo:'Nivel 3',           tipo:'billetera', tna:22.5, logo:'PP', min:'Sin mínimo' },
-    { nombre:'Cuenta DNI',      subtipo:'Provincia FCI',     tipo:'billetera', tna:22.0, logo:'DN', min:'Sin mínimo' },
-    { nombre:'Mercado Pago',    subtipo:'Mercado Fondo',     tipo:'billetera', tna:21.2, logo:'MP', min:'Sin mínimo' },
-    { nombre:'BruBank',         subtipo:'Ahorro BruBank',    tipo:'billetera', tna:21.0, logo:'BR', min:'Sin mínimo' },
-  ];
+  var hoy = new Date();
+  var antes = new Date(); antes.setDate(antes.getDate() - 29);
+  document.getElementById('modal-fecha-inicio').textContent =
+    antes.toLocaleDateString('es-AR', {day:'numeric', month:'short'});
+  document.getElementById('modal-fecha-fin').textContent = 'Hoy';
+  document.getElementById('modal-demo-note').style.display = isDemo ? 'block' : 'none';
 
-  const DEMO_PLAZO = [
-    { nombre:'BBVA',            tipo:'Privado',      tna:34.5, logo:'BV' },
-    { nombre:'ICBC',            tipo:'Privado',      tna:34.2, logo:'IC' },
-    { nombre:'Santander',       tipo:'Privado',      tna:34.0, logo:'ST' },
-    { nombre:'HSBC',            tipo:'Privado',      tna:34.0, logo:'HS' },
-    { nombre:'Macro',           tipo:'Privado',      tna:33.8, logo:'MA' },
-    { nombre:'Galicia',         tipo:'Privado',      tna:33.5, logo:'GA' },
-    { nombre:'Supervielle',     tipo:'Privado',      tna:33.5, logo:'SU' },
-    { nombre:'Banco Nación',    tipo:'Público',      tna:33.0, logo:'BN' },
-    { nombre:'Banco Provincia', tipo:'Público',      tna:33.0, logo:'BP' },
-    { nombre:'Patagonia',       tipo:'Privado',      tna:33.0, logo:'PT' },
-    { nombre:'Ciudad',          tipo:'Público',      tna:32.5, logo:'CI' },
-    { nombre:'Credicoop',       tipo:'Cooperativo',  tna:32.0, logo:'CC' },
-  ];
+  document.getElementById('chart-overlay').style.display = 'block';
+  document.getElementById('chart-modal').style.display   = 'block';
+  document.body.style.overflow = 'hidden';
 
-  const state = {
-    billeteras: { data:[], sortKey:'tna', sortDir:-1, isDemo:false },
-    plazo:      { data:[], sortKey:'tna', sortDir:-1, isDemo:false },
-    activeTab:  'billeteras',
-  };
+  setTimeout(function() { dibujarGrafico(historial, alcista); }, 60);
+}
 
-  // Store para pasar productos al modal sin JSON en el HTML
-  const productoStore = {};
+function closeModal() {
+  document.getElementById('chart-overlay').style.display = 'none';
+  document.getElementById('chart-modal').style.display   = 'none';
+  document.body.style.overflow = '';
+}
 
-  const fmtTNA   = v => v != null ? v.toFixed(2)+'%' : '—';
-  const fmtPesos = v => '$' + Math.round(v).toLocaleString('es-AR');
-  const calcMes  = tna => tna / 100 / 12;
-  const initials = s => s.split(/\s+/).map(w=>w[0]).join('').slice(0,2).toUpperCase();
-  const nowStr   = () => new Date().toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'});
+document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeModal(); });
 
-  function rateClass(tna, arr) {
-    const max = Math.max(...arr.map(x=>x.tna)), min = Math.min(...arr.map(x=>x.tna));
-    const r = (tna-min)/((max-min)||1);
-    return r > 0.66 ? 'high' : r > 0.33 ? 'mid' : 'low';
+function generarHistorial(tnaActual) {
+  var dias = 30;
+  var datos = [];
+  var variacion = (Math.random() * 8) - 4;
+  var inicio = tnaActual - variacion;
+  for (var i = 0; i < dias; i++) {
+    var progreso = i / (dias - 1);
+    var tendencia = inicio + variacion * progreso;
+    var ruido = (Math.random() - 0.5) * 1.2;
+    datos.push(+(tendencia + ruido).toFixed(2));
   }
-  function tipoTag(tipo) {
-    const m = {billetera:['billetera','Billetera'],fci:['fci','FCI'],mm:['mm','Money Mkt']};
-    const [c,l] = m[tipo]||['fci',tipo];
-    return `<span class="tipo-tag ${c}">${l}</span>`;
-  }
-  function setRefreshState(id, loading) {
-    const btn = document.getElementById(id);
-    if (btn) { btn.classList.toggle('spinning',loading); btn.disabled = loading; }
-  }
+  datos[dias - 1] = tnaActual;
+  return datos;
+}
 
-  function updateCalc() {
-    const monto = parseFloat(document.getElementById('calc-monto').value)||0;
-    document.getElementById('calc-slider').value = Math.min(monto,5000000);
-    // Usar solo datos de billeteras (liquidez inmediata, más relevante para el usuario general)
-    const data = [...state.billeteras.data];
-    if (!data.length) return;
-    const best = [...data].sort((a,b)=>b.tna-a.tna)[0];
-    document.getElementById('calc-mensual').textContent = fmtPesos(monto * calcMes(best.tna));
-    document.getElementById('calc-anual').textContent   = fmtPesos(monto * best.tna/100);
-    document.getElementById('calc-nombre').textContent  = best.nombre;
-  }
-  function syncSlider(val) { document.getElementById('calc-monto').value=val; updateCalc(); }
+function dibujarGrafico(datos, alcista) {
+  var canvas = document.getElementById('chart-canvas');
+  if (!canvas) return;
+  var dpr = window.devicePixelRatio || 1;
+  var W = canvas.parentElement.clientWidth || 300;
+  var H = 180;
+  canvas.width  = W * dpr;
+  canvas.height = H * dpr;
+  canvas.style.width  = W + 'px';
+  canvas.style.height = H + 'px';
+  var ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+  ctx.clearRect(0, 0, W, H);
 
-  function switchTab(tab) {
-    state.activeTab = tab;
-    ['billeteras','plazo'].forEach((t,i) => {
-      document.getElementById(`tab-btn-${t}`).classList.toggle('active', t===tab);
-      document.getElementById(`tab-${t}`).classList.toggle('active', t===tab);
-      document.querySelectorAll('.nav-tab')[i].classList.toggle('active', t===tab);
-    });
+  var padL=42, padR=12, padT=16, padB=28;
+  var chartW = W-padL-padR, chartH = H-padT-padB;
+  var n = datos.length;
+  var minV = datos[0], maxV = datos[0];
+  for (var i=1;i<n;i++){if(datos[i]<minV)minV=datos[i];if(datos[i]>maxV)maxV=datos[i];}
+  minV -= 0.5; maxV += 0.5;
+  var range = maxV - minV || 1;
+  var color = alcista ? '#1DB954' : '#EF4444';
+
+  ctx.fillStyle = '#F8FAF8';
+  ctx.fillRect(0, 0, W, H);
+
+  ctx.strokeStyle = '#E2EAE2'; ctx.lineWidth = 1;
+  for (var k=0;k<=4;k++) {
+    var y = padT + (chartH/4)*k;
+    ctx.beginPath(); ctx.moveTo(padL,y); ctx.lineTo(W-padR,y); ctx.stroke();
   }
 
-  function renderTopCards(section, containerId) {
-    const data = [...state[section].data].sort((a,b)=>b.tna-a.tna).slice(0,3);
-    const el = document.getElementById(containerId);
-    if (!data.length) { el.innerHTML=''; return; }
-    const ranks=['🥇 El mejor','🥈 Segundo','🥉 Tercero'];
-    const rc=['rank-1','rank-2','rank-3'], bc=['','two','three'];
-    el.innerHTML = data.map((r,i)=>`
-      <div class="top-card ${rc[i]}" style="animation:fadeUp 0.3s ${i*0.08}s ease both">
-        <div class="rank-badge ${bc[i]}">${ranks[i]}</div>
-        <div class="top-card-header">
-          <div class="card-logo">${r.logo||initials(r.nombre)}</div>
-          <div><div class="card-name">${r.nombre}</div><div class="card-sub">${r.subtipo||r.tipo||''}</div></div>
-        </div>
-        <div class="card-tna-big">${fmtTNA(r.tna)}</div>
-        <div class="card-tna-label">por año (TNA)</div>
-        <div class="card-monthly">Por cada $100.000 ganás <span>${fmtPesos(100000*calcMes(r.tna))}/mes</span></div>
-      </div>`).join('');
+  var barW = (chartW/n) - 2;
+  for (var i=0;i<n;i++) {
+    var x = padL + i*(chartW/n) + 1;
+    var yTop = padT + chartH*(1-(datos[i]-minV)/range);
+    var bH = chartH-(yTop-padT);
+    ctx.fillStyle = i===n-1 ? color : color+'99';
+    ctx.fillRect(x, yTop, Math.max(barW,1), bH);
   }
 
-  function renderBilleteras() {
-    const {data,sortKey,sortDir,isDemo} = state.billeteras;
-    const sorted = [...data].sort((a,b)=>(a[sortKey]>b[sortKey]?1:-1)*sortDir);
-    const max = Math.max(...data.map(x=>x.tna));
-    document.getElementById('table-billeteras').innerHTML = sorted.map((r,i)=>{
-      const cls=rateClass(r.tna,data), mens=fmtPesos(100000*calcMes(r.tna)), isTop=r.tna===max;
-      const pid = 'b_' + i;
-      productoStore[pid] = { producto: r, isDemo };
-      return `<tr onclick="openModal('${pid}')" style="animation:fadeUp 0.3s ${i*0.025}s ease both;cursor:pointer;">
-        <td><div class="td-name"><div class="entity-logo">${r.logo||initials(r.nombre)}</div>
-          <div class="name-text"><div class="primary">${r.nombre}</div>
-          <div class="secondary">${r.subtipo||''}${isDemo?'<span class="demo-badge">DEMO</span>':''}</div></div></div></td>
-        <td class="hide-mobile">${tipoTag(r.tipo)}</td>
-        <td class="right">${isTop?`<span class="badge-top">⭐ ${fmtTNA(r.tna)}</span>`:`<span class="rate ${cls}">${fmtTNA(r.tna)}</span>`}</td>
-        <td class="right hide-mobile"><span class="monthly-gain">+${mens}</span></td>
-        <td class="right hide-mobile" style="color:var(--muted);font-size:0.8rem">${r.min||'—'} <span style="float:right;opacity:0.4;font-size:0.7rem;">📊</span></td></tr>`;
-    }).join('');
-    document.getElementById('stat-best-billetera').textContent = fmtTNA(max);
-    renderTopCards('billeteras','top-cards-billeteras');
-    updateCalc();
+  ctx.strokeStyle = color; ctx.lineWidth = 2;
+  ctx.setLineDash([4,3]);
+  ctx.beginPath();
+  for (var i=0;i<n;i++) {
+    var x = padL + i*(chartW/n) + (chartW/n)/2;
+    var y = padT + chartH*(1-(datos[i]-minV)/range);
+    if (i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
   }
+  ctx.stroke(); ctx.setLineDash([]);
 
-  function renderPlazo() {
-    const {data,sortKey,sortDir,isDemo} = state.plazo;
-    const sorted = [...data].sort((a,b)=>(a[sortKey]>b[sortKey]?1:-1)*sortDir);
-    const max = Math.max(...data.map(x=>x.tna));
-    document.getElementById('table-plazo').innerHTML = sorted.map((r,i)=>{
-      const cls=rateClass(r.tna,data), mens=fmtPesos(100000*calcMes(r.tna)), isTop=r.tna===max;
-      const pid = 'p_' + i;
-      productoStore[pid] = { producto: r, isDemo };
-      return `<tr onclick="openModal('${pid}')" style="animation:fadeUp 0.3s ${i*0.025}s ease both;cursor:pointer;">
-        <td><div class="td-name"><div class="entity-logo">${r.logo||initials(r.nombre)}</div>
-          <div class="name-text"><div class="primary">${r.nombre}</div>
-          <div class="secondary">${r.tipo||''}${isDemo?'<span class="demo-badge">DEMO</span>':''}</div></div></div></td>
-        <td class="hide-mobile" style="color:var(--muted);font-size:0.82rem">${r.tipo||'—'}</td>
-        <td class="right">${isTop?`<span class="badge-top">⭐ ${fmtTNA(r.tna)}</span>`:`<span class="rate ${cls}">${fmtTNA(r.tna)}</span>`}</td>
-        <td class="right hide-mobile"><span class="monthly-gain">+${mens}</span> <span style="float:right;opacity:0.4;font-size:0.7rem;">📊</span></td></tr>`;
-    }).join('');
-    document.getElementById('stat-best-plazo').textContent = fmtTNA(max);
-    renderTopCards('plazo','top-cards-plazo');
+  ctx.fillStyle='#7A917A'; ctx.font='11px sans-serif'; ctx.textAlign='right';
+  for (var k=0;k<=4;k++) {
+    var val = maxV-(range/4)*k;
+    var y = padT+(chartH/4)*k;
+    ctx.fillText(val.toFixed(1)+'%', padL-4, y+4);
   }
-
-  function sortTable(section, key) {
-    const s = state[section];
-    s.sortDir = s.sortKey===key ? s.sortDir*-1 : (key==='tna'?-1:1);
-    s.sortKey = key;
-    section==='billeteras' ? renderBilleteras() : renderPlazo();
-  }
-
-  async function loadBilleteras() {
-    setRefreshState('refresh-billeteras', true);
-    try {
-      const json = await fetchBackend('/api/billeteras');
-      state.billeteras.data   = json.data.map(r=>({...r,logo:r.logo||initials(r.nombre)}));
-      state.billeteras.isDemo = false;
-      renderBilleteras();
-    } catch(e) {
-      // Demo ya está visible, no hacer nada
-    } finally {
-      setRefreshState('refresh-billeteras', false);
-    }
-  }
-
-  async function loadPlazoFijo() {
-    setRefreshState('refresh-plazo', true);
-    try {
-      const [plazoJson, badlarJson] = await Promise.all([
-        fetchBackend('/api/plazo'),
-        fetchBackend('/api/badlar').catch(()=>null),
-      ]);
-      state.plazo.data   = plazoJson.data.map(r=>({...r,logo:r.logo||initials(r.nombre)}));
-      state.plazo.isDemo = false;
-      if (badlarJson?.tna) document.getElementById('stat-badlar').textContent = fmtTNA(badlarJson.tna);
-      renderPlazo();
-    } catch(e) {
-      // Demo ya está visible, no hacer nada
-    } finally {
-      setRefreshState('refresh-plazo', false);
-      document.getElementById('stat-update').textContent = nowStr();
-    }
-  }
-
-  // ── INIT ──────────────────────────────────────────
-  function mostrarDemo() {
-    state.billeteras.data   = DEMO_BILLETERAS;
-    state.billeteras.isDemo = true;
-    state.plazo.data        = DEMO_PLAZO;
-    state.plazo.isDemo      = true;
-    renderBilleteras();
-    renderPlazo();
-    document.getElementById('stat-update').textContent = nowStr();
-  }
-
-  // Mostrar demo inmediatamente, sin esperar nada
-  mostrarDemo();
-
-  // Luego intentar datos reales en background
-  window.addEventListener('load', () => {
-    loadBilleteras();
-    loadPlazoFijo();
+  ctx.textAlign='center';
+  var hoy = new Date();
+  [0,7,14,21,29].forEach(function(di) {
+    var d = new Date(hoy); d.setDate(d.getDate()-(29-di));
+    var x = padL+di*(chartW/n)+(chartW/n)/2;
+    var label = di===29?'Hoy':d.toLocaleDateString('es-AR',{day:'numeric',month:'short'});
+    ctx.fillText(label, x, H-6);
   });
 
-  /* ────────────────────────────────────────────────
-     MODAL + GRÁFICO DE BARRAS
-     ──────────────────────────────────────────────── */
+  var lx = padL+(n-1)*(chartW/n)+(chartW/n)/2;
+  var ly = padT+chartH*(1-(datos[n-1]-minV)/range);
+  ctx.fillStyle=color; ctx.beginPath(); ctx.arc(lx,ly,5,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='white'; ctx.beginPath(); ctx.arc(lx,ly,2.5,0,Math.PI*2); ctx.fill();
+}
 
-  // Genera historial simulado realista de 30 días para un producto
-  function generarHistorial(tnaActual, isDemo) {
-    const dias = 30;
-    const datos = [];
-    // Simula movimientos graduales con algo de ruido
-    // La tasa de hace 30 días puede ser entre -4 y +4 puntos
-    const variacionTotal = (Math.random() * 8 - 4);
-    const tnaInicio = tnaActual - variacionTotal;
+/* ── ARRANQUE ───────────────────────────────── */
+renderBilleteras();
+renderPlazo();
+var su = document.getElementById('stat-update');
+if (su) su.textContent = nowStr();
 
-    for (let i = 0; i < dias; i++) {
-      const progreso = i / (dias - 1);
-      const tendencia = tnaInicio + variacionTotal * progreso;
-      // Ruido diario pequeño
-      const ruido = (Math.random() - 0.5) * 1.2;
-      datos.push(parseFloat((tendencia + ruido).toFixed(2)));
-    }
-    // El último dato es el actual exacto
-    datos[dias - 1] = tnaActual;
-    return datos;
-  }
+setTimeout(cargarDatosReales, 500);
 
-  function openModal(pid) {
-    const entry = productoStore[pid];
-    if (!entry) return;
-    const { producto, isDemo } = entry;
-    const historial = generarHistorial(producto.tna, isDemo);
-    const tnaHoy    = historial[historial.length - 1];
-    const tnaAntes  = historial[0];
-    const diff      = tnaHoy - tnaAntes;
-    const alcista   = diff >= 0;
-
-    // Llenar header
-    document.getElementById('modal-logo').textContent    = producto.logo || initials(producto.nombre);
-    document.getElementById('modal-nombre').textContent  = producto.nombre;
-    document.getElementById('modal-subtipo').textContent = producto.subtipo || producto.tipo || '';
-    document.getElementById('modal-tna').textContent     = fmtTNA(tnaHoy);
-    document.getElementById('modal-tna-old').textContent = fmtTNA(tnaAntes);
-
-    // Tendencia
-    const trendBox = document.getElementById('modal-trend-box');
-    const trendEl  = document.getElementById('modal-trend');
-    if (alcista) {
-      trendBox.style.background = '#E8F7ED';
-      trendBox.style.border     = '1px solid #1DB95433';
-      trendEl.style.color       = 'var(--green-dark)';
-      trendEl.textContent       = `📈 +${diff.toFixed(2)}%`;
-    } else {
-      trendBox.style.background = '#FEF2F2';
-      trendBox.style.border     = '1px solid #FECACA';
-      trendEl.style.color       = '#DC2626';
-      trendEl.textContent       = `📉 ${diff.toFixed(2)}%`;
-    }
-
-    // Fechas
-    const hoy   = new Date();
-    const antes = new Date(); antes.setDate(antes.getDate() - 29);
-    document.getElementById('modal-fecha-inicio').textContent =
-      antes.toLocaleDateString('es-AR', {day:'numeric', month:'short'});
-    document.getElementById('modal-fecha-fin').textContent = 'Hoy';
-
-    // Nota demo
-    document.getElementById('modal-demo-note').style.display = isDemo ? 'block' : 'none';
-
-    // Mostrar modal
-    document.getElementById('chart-overlay').style.display = 'block';
-    document.getElementById('chart-modal').style.display   = 'block';
-    document.body.style.overflow = 'hidden';
-
-    // Dibujar gráfico
-    setTimeout(() => dibujarGrafico(historial, alcista), 50);
-  }
-
-  function closeModal() {
-    document.getElementById('chart-overlay').style.display = 'none';
-    document.getElementById('chart-modal').style.display   = 'none';
-    document.body.style.overflow = '';
-  }
-
-  // Cerrar con Escape
-  document.addEventListener('keydown', e => { if(e.key==='Escape') closeModal(); });
-
-  function dibujarGrafico(datos, alcista) {
-    const canvas  = document.getElementById('chart-canvas');
-    const dpr     = window.devicePixelRatio || 1;
-    const W       = canvas.parentElement.clientWidth;
-    const H       = 180;
-
-    canvas.width  = W * dpr;
-    canvas.height = H * dpr;
-    canvas.style.width  = W + 'px';
-    canvas.style.height = H + 'px';
-
-    const ctx = canvas.getContext('2d');
-    ctx.scale(dpr, dpr);
-    ctx.clearRect(0, 0, W, H);
-
-    const padL = 42, padR = 12, padT = 16, padB = 28;
-    const chartW = W - padL - padR;
-    const chartH = H - padT - padB;
-    const n      = datos.length;
-
-    const minVal = Math.min(...datos) - 0.5;
-    const maxVal = Math.max(...datos) + 0.5;
-    const range  = maxVal - minVal || 1;
-
-    const colorAlta  = '#1DB954';
-    const colorBaja  = '#EF4444';
-    const colorBarra = alcista ? colorAlta : colorBaja;
-    const colorPale  = alcista ? '#E8F7ED' : '#FEF2F2';
-
-    // Fondo
-    ctx.fillStyle = '#F8FAF8';
-    ctx.beginPath();
-    ctx.roundRect(0, 0, W, H, 12);
-    ctx.fill();
-
-    // Líneas de referencia horizontales
-    ctx.strokeStyle = '#E2EAE2';
-    ctx.lineWidth   = 1;
-    for (let i = 0; i <= 4; i++) {
-      const y = padT + (chartH / 4) * i;
-      ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(W - padR, y); ctx.stroke();
-    }
-
-    // Barras
-    const barGap  = 2;
-    const barW    = (chartW / n) - barGap;
-
-    datos.forEach((v, i) => {
-      const x      = padL + i * (chartW / n) + barGap / 2;
-      const yTop   = padT + chartH * (1 - (v - minVal) / range);
-      const barH   = chartH - (yTop - padT);
-      const isLast = i === n - 1;
-
-      // Color: más intenso si es el último (hoy)
-      ctx.fillStyle = isLast ? colorBarra : colorBarra + '99';
-      ctx.beginPath();
-      ctx.roundRect(x, yTop, Math.max(barW, 1), barH, [3, 3, 0, 0]);
-      ctx.fill();
-    });
-
-    // Línea de tendencia
-    ctx.strokeStyle = colorBarra;
-    ctx.lineWidth   = 2;
-    ctx.setLineDash([4, 3]);
-    ctx.beginPath();
-    datos.forEach((v, i) => {
-      const x = padL + i * (chartW / n) + (chartW / n) / 2;
-      const y = padT + chartH * (1 - (v - minVal) / range);
-      i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
-    });
-    ctx.stroke();
-    ctx.setLineDash([]);
-
-    // Etiquetas eje Y
-    ctx.fillStyle  = '#7A917A';
-    ctx.font       = `${11 * dpr / dpr}px DM Sans, sans-serif`;
-    ctx.textAlign  = 'right';
-    for (let i = 0; i <= 4; i++) {
-      const val = maxVal - (range / 4) * i;
-      const y   = padT + (chartH / 4) * i;
-      ctx.fillText(val.toFixed(1) + '%', padL - 4, y + 4);
-    }
-
-    // Etiquetas eje X (cada 7 días)
-    ctx.textAlign = 'center';
-    ctx.fillStyle = '#7A917A';
-    const hoy = new Date();
-    [0, 7, 14, 21, 29].forEach(di => {
-      const d = new Date(hoy); d.setDate(d.getDate() - (29 - di));
-      const x = padL + di * (chartW / n) + (chartW / n) / 2;
-      const label = di === 29 ? 'Hoy' : d.toLocaleDateString('es-AR', {day:'numeric', month:'short'});
-      ctx.fillText(label, x, H - 6);
-    });
-
-    // Punto "HOY" destacado
-    const lastX = padL + (n-1) * (chartW / n) + (chartW / n) / 2;
-    const lastY = padT + chartH * (1 - (datos[n-1] - minVal) / range);
-    ctx.fillStyle = colorBarra;
-    ctx.beginPath();
-    ctx.arc(lastX, lastY, 5, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = 'white';
-    ctx.beginPath();
-    ctx.arc(lastX, lastY, 2.5, 0, Math.PI * 2);
-    ctx.fill();
-  }
-
+</script>
 </body>
 </html>
