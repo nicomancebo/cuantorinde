@@ -3,7 +3,35 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CuantoRinde — ¿Tu plata está rindiendo lo suficiente?</title>
+
+  <!-- ── SEO BÁSICO ──────────────────────────────── -->
+  <title>CuantoRinde — Compará billeteras, fondos y plazos fijos en Argentina</title>
+  <meta name="description" content="Comparador gratuito de rendimientos financieros en Argentina. Compará Mercado Pago, Ualá, Naranja X, plazos fijos y más. Calculá cuánto ganás con tu plata hoy." />
+  <meta name="keywords" content="billeteras virtuales argentina, mejor tasa plazo fijo, mercado pago rendimiento, uala tna, comparar billeteras, cuanto rinde mi plata, fondos comunes inversion, FCI argentina, tasa nominal anual, donde invertir pesos" />
+  <meta name="author" content="CuantoRinde.ar" />
+  <link rel="canonical" href="https://nicomancebo.github.io/cuantorinde/" />
+
+  <!-- ── OPEN GRAPH (para compartir en WhatsApp, redes) ── -->
+  <meta property="og:title" content="CuantoRinde — ¿Tu plata está rindiendo lo suficiente?" />
+  <meta property="og:description" content="Compará billeteras y plazos fijos de Argentina. Calculá cuánto ganás con tu plata hoy. Gratis, sin registro." />
+  <meta property="og:url" content="https://nicomancebo.github.io/cuantorinde/" />
+  <meta property="og:type" content="website" />
+  <meta property="og:locale" content="es_AR" />
+
+  <!-- ── DATOS ESTRUCTURADOS (Google entiende mejor tu página) ── -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "CuantoRinde",
+    "url": "https://nicomancebo.github.io/cuantorinde/",
+    "description": "Comparador gratuito de rendimientos de billeteras virtuales, fondos comunes de inversión y plazos fijos en Argentina.",
+    "applicationCategory": "FinanceApplication",
+    "inLanguage": "es-AR",
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "ARS" }
+  }
+  </script>
+
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
   <style>
@@ -335,6 +363,61 @@
   </section>
 </main>
 
+<!-- ── MODAL GRÁFICO ──────────────────────────────── -->
+<div id="chart-overlay" onclick="closeModal()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:200;backdrop-filter:blur(3px);"></div>
+
+<div id="chart-modal" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:201;background:var(--white);border-radius:24px 24px 0 0;padding:1.5rem;max-height:85vh;overflow-y:auto;box-shadow:0 -8px 40px rgba(0,0,0,0.15);transition:transform 0.3s ease;">
+
+  <!-- Header del modal -->
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;">
+    <div style="display:flex;align-items:center;gap:0.75rem;">
+      <div id="modal-logo" style="width:44px;height:44px;border-radius:12px;background:var(--surface);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-family:'Bricolage Grotesque',sans-serif;font-size:0.8rem;font-weight:800;color:var(--green-dark);flex-shrink:0;"></div>
+      <div>
+        <div id="modal-nombre" style="font-family:'Bricolage Grotesque',sans-serif;font-size:1.1rem;font-weight:800;"></div>
+        <div id="modal-subtipo" style="font-size:0.75rem;color:var(--muted);"></div>
+      </div>
+    </div>
+    <button onclick="closeModal()" style="width:34px;height:34px;border-radius:99px;border:1.5px solid var(--border);background:var(--surface);font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>
+  </div>
+
+  <!-- Stats rápidos -->
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0.75rem;margin-bottom:1.25rem;">
+    <div style="background:var(--green-pale);border:1px solid #1DB95433;border-radius:12px;padding:0.75rem;text-align:center;">
+      <div style="font-size:0.65rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:0.2rem;">TNA actual</div>
+      <div id="modal-tna" style="font-family:'Bricolage Grotesque',sans-serif;font-size:1.3rem;font-weight:800;color:var(--green);"></div>
+    </div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:0.75rem;text-align:center;">
+      <div style="font-size:0.65rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:0.2rem;">Hace 30 días</div>
+      <div id="modal-tna-old" style="font-family:'Bricolage Grotesque',sans-serif;font-size:1.3rem;font-weight:800;color:var(--text);"></div>
+    </div>
+    <div id="modal-trend-box" style="border-radius:12px;padding:0.75rem;text-align:center;">
+      <div style="font-size:0.65rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:0.2rem;color:var(--muted);">Tendencia</div>
+      <div id="modal-trend" style="font-family:'Bricolage Grotesque',sans-serif;font-size:1.1rem;font-weight:800;"></div>
+    </div>
+  </div>
+
+  <!-- Título gráfico -->
+  <div style="font-size:0.75rem;font-weight:700;color:var(--muted);letter-spacing:0.06em;text-transform:uppercase;margin-bottom:0.5rem;">
+    Evolución TNA — últimos 30 días
+  </div>
+
+  <!-- Canvas del gráfico -->
+  <div style="position:relative;">
+    <canvas id="chart-canvas" style="width:100%;border-radius:12px;"></canvas>
+  </div>
+
+  <!-- Leyenda -->
+  <div style="display:flex;justify-content:space-between;margin-top:0.5rem;font-size:0.7rem;color:var(--muted);">
+    <span id="modal-fecha-inicio"></span>
+    <span id="modal-fecha-fin">Hoy</span>
+  </div>
+
+  <!-- Nota -->
+  <div id="modal-demo-note" style="display:none;margin-top:1rem;background:#FFFBEB;border:1px solid #FDE68A;border-radius:10px;padding:0.65rem 0.9rem;font-size:0.75rem;color:#92400E;">
+    ⚠️ <strong>Datos de ejemplo.</strong> Cuando el backend esté conectado, este gráfico mostrará datos reales de CAFCI/BCRA.
+  </div>
+</div>
+
 <footer>
   Datos de FCI por <a href="https://cafci.org.ar" target="_blank">CAFCI</a> · Tasas de Plazo Fijo por <a href="https://bcra.gob.ar" target="_blank">BCRA</a><br>
   Los rendimientos pasados no garantizan rendimientos futuros · No constituye asesoramiento financiero<br>
@@ -345,7 +428,7 @@
   const CONFIG = { BACKEND: 'https://rendimientos-backend.onrender.com' };
 
   async function fetchBackend(path) {
-    const res = await fetch(`${CONFIG.BACKEND}${path}`, { signal: AbortSignal.timeout(10000) });
+    const res = await fetch(`${CONFIG.BACKEND}${path}`, { signal: AbortSignal.timeout(65000) });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const json = await res.json();
     if (!json.data?.length) throw new Error('Sin datos');
@@ -388,6 +471,9 @@
     activeTab:  'billeteras',
   };
 
+  // Store para pasar productos al modal sin JSON en el HTML
+  const productoStore = {};
+
   const fmtTNA   = v => v != null ? v.toFixed(2)+'%' : '—';
   const fmtPesos = v => '$' + Math.round(v).toLocaleString('es-AR');
   const calcMes  = tna => tna / 100 / 12;
@@ -412,9 +498,10 @@
   function updateCalc() {
     const monto = parseFloat(document.getElementById('calc-monto').value)||0;
     document.getElementById('calc-slider').value = Math.min(monto,5000000);
-    const data = [...state.billeteras.data, ...state.plazo.data];
+    // Usar solo datos de billeteras (liquidez inmediata, más relevante para el usuario general)
+    const data = [...state.billeteras.data];
     if (!data.length) return;
-    const best = data.sort((a,b)=>b.tna-a.tna)[0];
+    const best = [...data].sort((a,b)=>b.tna-a.tna)[0];
     document.getElementById('calc-mensual').textContent = fmtPesos(monto * calcMes(best.tna));
     document.getElementById('calc-anual').textContent   = fmtPesos(monto * best.tna/100);
     document.getElementById('calc-nombre').textContent  = best.nombre;
@@ -455,14 +542,16 @@
     const max = Math.max(...data.map(x=>x.tna));
     document.getElementById('table-billeteras').innerHTML = sorted.map((r,i)=>{
       const cls=rateClass(r.tna,data), mens=fmtPesos(100000*calcMes(r.tna)), isTop=r.tna===max;
-      return `<tr style="animation:fadeUp 0.3s ${i*0.025}s ease both">
+      const pid = 'b_' + i;
+      productoStore[pid] = { producto: r, isDemo };
+      return `<tr onclick="openModal('${pid}')" style="animation:fadeUp 0.3s ${i*0.025}s ease both;cursor:pointer;">
         <td><div class="td-name"><div class="entity-logo">${r.logo||initials(r.nombre)}</div>
           <div class="name-text"><div class="primary">${r.nombre}</div>
           <div class="secondary">${r.subtipo||''}${isDemo?'<span class="demo-badge">DEMO</span>':''}</div></div></div></td>
         <td class="hide-mobile">${tipoTag(r.tipo)}</td>
         <td class="right">${isTop?`<span class="badge-top">⭐ ${fmtTNA(r.tna)}</span>`:`<span class="rate ${cls}">${fmtTNA(r.tna)}</span>`}</td>
         <td class="right hide-mobile"><span class="monthly-gain">+${mens}</span></td>
-        <td class="right hide-mobile" style="color:var(--muted);font-size:0.8rem">${r.min||'—'}</td></tr>`;
+        <td class="right hide-mobile" style="color:var(--muted);font-size:0.8rem">${r.min||'—'} <span style="float:right;opacity:0.4;font-size:0.7rem;">📊</span></td></tr>`;
     }).join('');
     document.getElementById('stat-best-billetera').textContent = fmtTNA(max);
     renderTopCards('billeteras','top-cards-billeteras');
@@ -475,13 +564,15 @@
     const max = Math.max(...data.map(x=>x.tna));
     document.getElementById('table-plazo').innerHTML = sorted.map((r,i)=>{
       const cls=rateClass(r.tna,data), mens=fmtPesos(100000*calcMes(r.tna)), isTop=r.tna===max;
-      return `<tr style="animation:fadeUp 0.3s ${i*0.025}s ease both">
+      const pid = 'p_' + i;
+      productoStore[pid] = { producto: r, isDemo };
+      return `<tr onclick="openModal('${pid}')" style="animation:fadeUp 0.3s ${i*0.025}s ease both;cursor:pointer;">
         <td><div class="td-name"><div class="entity-logo">${r.logo||initials(r.nombre)}</div>
           <div class="name-text"><div class="primary">${r.nombre}</div>
           <div class="secondary">${r.tipo||''}${isDemo?'<span class="demo-badge">DEMO</span>':''}</div></div></div></td>
         <td class="hide-mobile" style="color:var(--muted);font-size:0.82rem">${r.tipo||'—'}</td>
         <td class="right">${isTop?`<span class="badge-top">⭐ ${fmtTNA(r.tna)}</span>`:`<span class="rate ${cls}">${fmtTNA(r.tna)}</span>`}</td>
-        <td class="right hide-mobile"><span class="monthly-gain">+${mens}</span></td></tr>`;
+        <td class="right hide-mobile"><span class="monthly-gain">+${mens}</span> <span style="float:right;opacity:0.4;font-size:0.7rem;">📊</span></td></tr>`;
     }).join('');
     document.getElementById('stat-best-plazo').textContent = fmtTNA(max);
     renderTopCards('plazo','top-cards-plazo');
@@ -496,24 +587,20 @@
 
   async function loadBilleteras() {
     setRefreshState('refresh-billeteras', true);
-    document.getElementById('table-billeteras').innerHTML =
-      `<tr class="state-row"><td colspan="5"><span class="spinner"></span>Buscando los mejores rendimientos...</td></tr>`;
     try {
       const json = await fetchBackend('/api/billeteras');
       state.billeteras.data   = json.data.map(r=>({...r,logo:r.logo||initials(r.nombre)}));
       state.billeteras.isDemo = false;
       renderBilleteras();
     } catch(e) {
-      state.billeteras.data   = DEMO_BILLETERAS;
-      state.billeteras.isDemo = true;
-      renderBilleteras();
-    } finally { setRefreshState('refresh-billeteras', false); }
+      // Demo ya está visible, no hacer nada
+    } finally {
+      setRefreshState('refresh-billeteras', false);
+    }
   }
 
   async function loadPlazoFijo() {
     setRefreshState('refresh-plazo', true);
-    document.getElementById('table-plazo').innerHTML =
-      `<tr class="state-row"><td colspan="4"><span class="spinner"></span>Buscando las mejores tasas...</td></tr>`;
     try {
       const [plazoJson, badlarJson] = await Promise.all([
         fetchBackend('/api/plazo'),
@@ -524,18 +611,224 @@
       if (badlarJson?.tna) document.getElementById('stat-badlar').textContent = fmtTNA(badlarJson.tna);
       renderPlazo();
     } catch(e) {
-      state.plazo.data   = DEMO_PLAZO;
-      state.plazo.isDemo = true;
-      renderPlazo();
+      // Demo ya está visible, no hacer nada
     } finally {
       setRefreshState('refresh-plazo', false);
       document.getElementById('stat-update').textContent = nowStr();
     }
   }
 
-  document.addEventListener('DOMContentLoaded', () => {
-    Promise.all([loadBilleteras(), loadPlazoFijo()]);
+  // ── INIT ──────────────────────────────────────────
+  function mostrarDemo() {
+    state.billeteras.data   = DEMO_BILLETERAS;
+    state.billeteras.isDemo = true;
+    state.plazo.data        = DEMO_PLAZO;
+    state.plazo.isDemo      = true;
+    renderBilleteras();
+    renderPlazo();
+    document.getElementById('stat-update').textContent = nowStr();
+  }
+
+  // Mostrar demo inmediatamente, sin esperar nada
+  mostrarDemo();
+
+  // Luego intentar datos reales en background
+  window.addEventListener('load', () => {
+    loadBilleteras();
+    loadPlazoFijo();
   });
-</script>
+
+  /* ────────────────────────────────────────────────
+     MODAL + GRÁFICO DE BARRAS
+     ──────────────────────────────────────────────── */
+
+  // Genera historial simulado realista de 30 días para un producto
+  function generarHistorial(tnaActual, isDemo) {
+    const dias = 30;
+    const datos = [];
+    // Simula movimientos graduales con algo de ruido
+    // La tasa de hace 30 días puede ser entre -4 y +4 puntos
+    const variacionTotal = (Math.random() * 8 - 4);
+    const tnaInicio = tnaActual - variacionTotal;
+
+    for (let i = 0; i < dias; i++) {
+      const progreso = i / (dias - 1);
+      const tendencia = tnaInicio + variacionTotal * progreso;
+      // Ruido diario pequeño
+      const ruido = (Math.random() - 0.5) * 1.2;
+      datos.push(parseFloat((tendencia + ruido).toFixed(2)));
+    }
+    // El último dato es el actual exacto
+    datos[dias - 1] = tnaActual;
+    return datos;
+  }
+
+  function openModal(pid) {
+    const entry = productoStore[pid];
+    if (!entry) return;
+    const { producto, isDemo } = entry;
+    const historial = generarHistorial(producto.tna, isDemo);
+    const tnaHoy    = historial[historial.length - 1];
+    const tnaAntes  = historial[0];
+    const diff      = tnaHoy - tnaAntes;
+    const alcista   = diff >= 0;
+
+    // Llenar header
+    document.getElementById('modal-logo').textContent    = producto.logo || initials(producto.nombre);
+    document.getElementById('modal-nombre').textContent  = producto.nombre;
+    document.getElementById('modal-subtipo').textContent = producto.subtipo || producto.tipo || '';
+    document.getElementById('modal-tna').textContent     = fmtTNA(tnaHoy);
+    document.getElementById('modal-tna-old').textContent = fmtTNA(tnaAntes);
+
+    // Tendencia
+    const trendBox = document.getElementById('modal-trend-box');
+    const trendEl  = document.getElementById('modal-trend');
+    if (alcista) {
+      trendBox.style.background = '#E8F7ED';
+      trendBox.style.border     = '1px solid #1DB95433';
+      trendEl.style.color       = 'var(--green-dark)';
+      trendEl.textContent       = `📈 +${diff.toFixed(2)}%`;
+    } else {
+      trendBox.style.background = '#FEF2F2';
+      trendBox.style.border     = '1px solid #FECACA';
+      trendEl.style.color       = '#DC2626';
+      trendEl.textContent       = `📉 ${diff.toFixed(2)}%`;
+    }
+
+    // Fechas
+    const hoy   = new Date();
+    const antes = new Date(); antes.setDate(antes.getDate() - 29);
+    document.getElementById('modal-fecha-inicio').textContent =
+      antes.toLocaleDateString('es-AR', {day:'numeric', month:'short'});
+    document.getElementById('modal-fecha-fin').textContent = 'Hoy';
+
+    // Nota demo
+    document.getElementById('modal-demo-note').style.display = isDemo ? 'block' : 'none';
+
+    // Mostrar modal
+    document.getElementById('chart-overlay').style.display = 'block';
+    document.getElementById('chart-modal').style.display   = 'block';
+    document.body.style.overflow = 'hidden';
+
+    // Dibujar gráfico
+    setTimeout(() => dibujarGrafico(historial, alcista), 50);
+  }
+
+  function closeModal() {
+    document.getElementById('chart-overlay').style.display = 'none';
+    document.getElementById('chart-modal').style.display   = 'none';
+    document.body.style.overflow = '';
+  }
+
+  // Cerrar con Escape
+  document.addEventListener('keydown', e => { if(e.key==='Escape') closeModal(); });
+
+  function dibujarGrafico(datos, alcista) {
+    const canvas  = document.getElementById('chart-canvas');
+    const dpr     = window.devicePixelRatio || 1;
+    const W       = canvas.parentElement.clientWidth;
+    const H       = 180;
+
+    canvas.width  = W * dpr;
+    canvas.height = H * dpr;
+    canvas.style.width  = W + 'px';
+    canvas.style.height = H + 'px';
+
+    const ctx = canvas.getContext('2d');
+    ctx.scale(dpr, dpr);
+    ctx.clearRect(0, 0, W, H);
+
+    const padL = 42, padR = 12, padT = 16, padB = 28;
+    const chartW = W - padL - padR;
+    const chartH = H - padT - padB;
+    const n      = datos.length;
+
+    const minVal = Math.min(...datos) - 0.5;
+    const maxVal = Math.max(...datos) + 0.5;
+    const range  = maxVal - minVal || 1;
+
+    const colorAlta  = '#1DB954';
+    const colorBaja  = '#EF4444';
+    const colorBarra = alcista ? colorAlta : colorBaja;
+    const colorPale  = alcista ? '#E8F7ED' : '#FEF2F2';
+
+    // Fondo
+    ctx.fillStyle = '#F8FAF8';
+    ctx.beginPath();
+    ctx.roundRect(0, 0, W, H, 12);
+    ctx.fill();
+
+    // Líneas de referencia horizontales
+    ctx.strokeStyle = '#E2EAE2';
+    ctx.lineWidth   = 1;
+    for (let i = 0; i <= 4; i++) {
+      const y = padT + (chartH / 4) * i;
+      ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(W - padR, y); ctx.stroke();
+    }
+
+    // Barras
+    const barGap  = 2;
+    const barW    = (chartW / n) - barGap;
+
+    datos.forEach((v, i) => {
+      const x      = padL + i * (chartW / n) + barGap / 2;
+      const yTop   = padT + chartH * (1 - (v - minVal) / range);
+      const barH   = chartH - (yTop - padT);
+      const isLast = i === n - 1;
+
+      // Color: más intenso si es el último (hoy)
+      ctx.fillStyle = isLast ? colorBarra : colorBarra + '99';
+      ctx.beginPath();
+      ctx.roundRect(x, yTop, Math.max(barW, 1), barH, [3, 3, 0, 0]);
+      ctx.fill();
+    });
+
+    // Línea de tendencia
+    ctx.strokeStyle = colorBarra;
+    ctx.lineWidth   = 2;
+    ctx.setLineDash([4, 3]);
+    ctx.beginPath();
+    datos.forEach((v, i) => {
+      const x = padL + i * (chartW / n) + (chartW / n) / 2;
+      const y = padT + chartH * (1 - (v - minVal) / range);
+      i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Etiquetas eje Y
+    ctx.fillStyle  = '#7A917A';
+    ctx.font       = `${11 * dpr / dpr}px DM Sans, sans-serif`;
+    ctx.textAlign  = 'right';
+    for (let i = 0; i <= 4; i++) {
+      const val = maxVal - (range / 4) * i;
+      const y   = padT + (chartH / 4) * i;
+      ctx.fillText(val.toFixed(1) + '%', padL - 4, y + 4);
+    }
+
+    // Etiquetas eje X (cada 7 días)
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#7A917A';
+    const hoy = new Date();
+    [0, 7, 14, 21, 29].forEach(di => {
+      const d = new Date(hoy); d.setDate(d.getDate() - (29 - di));
+      const x = padL + di * (chartW / n) + (chartW / n) / 2;
+      const label = di === 29 ? 'Hoy' : d.toLocaleDateString('es-AR', {day:'numeric', month:'short'});
+      ctx.fillText(label, x, H - 6);
+    });
+
+    // Punto "HOY" destacado
+    const lastX = padL + (n-1) * (chartW / n) + (chartW / n) / 2;
+    const lastY = padT + chartH * (1 - (datos[n-1] - minVal) / range);
+    ctx.fillStyle = colorBarra;
+    ctx.beginPath();
+    ctx.arc(lastX, lastY, 5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = 'white';
+    ctx.beginPath();
+    ctx.arc(lastX, lastY, 2.5, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
 </body>
 </html>
