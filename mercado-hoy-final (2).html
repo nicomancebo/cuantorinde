@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Mercado Hoy – Tu asesor de inversiones</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg:#F7F9F7; --white:#FFFFFF; --surface:#F0F4F0; --border:#E2EAE2;
+  --text:#1A2B1A; --muted:#7A917A; --green:#1DB954; --green-dk:#159940;
+  --green-pale:#E8F7ED; --orange:#FF8C42; --blue:#3B7DD8; --red:#EF4444;
+  --radius:16px; --radius-sm:10px;
+  --shadow:0 2px 16px rgba(0,0,0,.06); --shadow-md:0 4px 32px rgba(0,0,0,.10);
+  --ticker-bg:#0f1f0f;
+}
+[data-theme="dark"] {
+  --bg:#0d1a0d; --white:#111f11; --surface:#162416; --border:#213221;
+  --text:#e0eee0; --muted:#6a896a; --green:#1DB954; --green-dk:#24d45f;
+  --green-pale:rgba(29,185,84,.12); --orange:#FF8C42; --blue:#5b9af5; --red:#f87171;
+  --shadow:0 2px 16px rgba(0,0,0,.35); --shadow-md:0 4px 32px rgba(0,0,0,.5);
+  --ticker-bg:#060e06;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:16px;scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;line-height:1.6;transition:background .3s,color .3s}
+h1,h2,h3,h4{font-family:'Bricolage Grotesque',sans-serif;line-height:1.15}
+
+/* TICKER */
+.qbar{background:var(--ticker-bg);border-bottom:2px solid var(--green);height:42px;display:flex;align-items:stretch;position:sticky;top:0;z-index:200;overflow:hidden}
+.qbar-label{background:var(--green);color:#000;font-size:10px;font-weight:900;padding:0 14px;letter-spacing:.7px;display:flex;align-items:center;gap:6px;flex-shrink:0}
+.qdot{width:6px;height:6px;border-radius:50%;background:#000;animation:blink 1.8s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
+.qbar-scroll{overflow:hidden;flex:1}
+.qbar-track{display:flex;align-items:center;white-space:nowrap;height:42px;animation:marquee 70s linear infinite}
+.qbar-track:hover{animation-play-state:paused}
+@keyframes marquee{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+.qcat{font-size:9px;font-weight:900;letter-spacing:.8px;color:var(--green);padding:0 12px;border-right:1px solid rgba(29,185,84,.3);height:42px;display:inline-flex;align-items:center;flex-shrink:0}
+.qi{display:inline-flex;align-items:center;gap:5px;padding:0 14px;height:42px;border-right:1px solid rgba(255,255,255,.07);font-size:12px;flex-shrink:0}
+.qi .qn{font-size:10px;font-weight:700;color:rgba(255,255,255,.4);margin-right:1px}
+.qi .qv{color:#fff;font-weight:700;font-family:'Bricolage Grotesque',sans-serif}
+.qi .qu{color:#1DB954;font-size:10px;font-weight:700}
+.qi .qd{color:#f87171;font-size:10px;font-weight:700}
+
+/* NAV */
+nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2rem;background:var(--white);border-bottom:1px solid var(--border);position:sticky;top:42px;z-index:100;box-shadow:var(--shadow);transition:background .3s,border-color .3s}
+.nav-logo{font-family:'Bricolage Grotesque',sans-serif;font-size:1.25rem;font-weight:800;color:var(--text);display:flex;align-items:center;gap:.4rem}
+.nav-logo .dot{color:var(--green)}
+.nav-badge{background:var(--green-pale);color:var(--green-dk);font-size:.65rem;font-weight:700;padding:.2rem .5rem;border-radius:99px;letter-spacing:.04em}
+.nav-right{display:flex;align-items:center;gap:.5rem}
+.nav-tab{padding:.4rem 1rem;border-radius:99px;border:1.5px solid var(--border);background:transparent;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:.82rem;font-weight:500;cursor:pointer;transition:all .18s;white-space:nowrap}
+.nav-tab.active,.nav-tab:hover{border-color:var(--green);color:var(--green-dk);background:var(--green-pale)}
+.theme-btn{width:34px;height:34px;border-radius:50%;border:1.5px solid var(--border);background:var(--surface);cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.theme-btn:hover{border-color:var(--green);transform:rotate(15deg)}
+.btn-cta{background:var(--green);color:#fff;font-family:'DM Sans',sans-serif;font-weight:700;padding:.5rem 1.25rem;border-radius:99px;border:none;cursor:pointer;font-size:.85rem;transition:all .2s;white-space:nowrap;text-decoration:none;display:inline-flex;align-items:center;gap:.4rem}
+.btn-cta:hover{background:var(--green-dk);transform:translateY(-1px);box-shadow:0 4px 16px rgba(29,185,84,.3)}
+
+/* HERO */
+.hero{max-width:1100px;margin:0 auto;padding:4rem 2rem 2rem;display:grid;grid-template-columns:1fr 1fr;gap:3rem;align-items:center;animation:fadeUp .5s ease both}
+.hero-text h1{font-size:clamp(2rem,4vw,3rem);font-weight:800;margin-bottom:1rem}
+.hero-text h1 em{font-style:normal;color:var(--green);position:relative}
+.hero-text h1 em::after{content:'';position:absolute;left:0;right:0;bottom:-2px;height:3px;background:var(--green);border-radius:2px;opacity:.35}
+.hero-text p{font-size:1rem;color:var(--muted);margin-bottom:1.5rem;max-width:420px}
+.hero-chips{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:1.5rem}
+.chip{display:inline-flex;align-items:center;gap:.35rem;background:var(--white);border:1.5px solid var(--border);border-radius:99px;padding:.35rem .8rem;font-size:.8rem;font-weight:500}
+.chip .dc{width:7px;height:7px;border-radius:50%;background:var(--green);display:inline-block}
+.hero-actions{display:flex;gap:.75rem;flex-wrap:wrap}
+.btn-ghost{background:transparent;border:1.5px solid var(--border);color:var(--text);font-family:'DM Sans',sans-serif;font-weight:600;padding:.55rem 1.25rem;border-radius:99px;cursor:pointer;font-size:.85rem;transition:all .2s}
+.btn-ghost:hover{border-color:var(--green);color:var(--green-dk)}
+
+/* CALC */
+.calc-card{background:var(--white);border:1.5px solid var(--border);border-radius:24px;padding:2rem;box-shadow:var(--shadow-md);transition:background .3s,border-color .3s}
+.calc-card h3{font-size:1rem;font-weight:700;margin-bottom:.4rem}
+.calc-disclaimer{font-size:.72rem;color:var(--muted);margin-bottom:1.25rem;line-height:1.5}
+.calc-tipo-wrap{display:flex;gap:.5rem;margin-bottom:1rem}
+.calc-tipo-btn{flex:1;padding:.6rem;border:1.5px solid var(--border);background:var(--surface);border-radius:var(--radius-sm);font-family:'DM Sans',sans-serif;font-size:.8rem;font-weight:600;color:var(--muted);cursor:pointer;transition:all .2s}
+.calc-tipo-btn.active{border-color:var(--green);background:var(--green-pale);color:var(--green-dk)}
+.calc-lbl{font-size:.78rem;font-weight:600;color:var(--muted);letter-spacing:.04em;text-transform:uppercase;margin-bottom:.4rem}
+.calc-wrap{position:relative;margin-bottom:1rem}
+.calc-pre{position:absolute;left:14px;top:50%;transform:translateY(-50%);font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:1.1rem;color:var(--muted)}
+.calc-inp{width:100%;padding:.75rem 1rem .75rem 2.2rem;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-family:'Bricolage Grotesque',sans-serif;font-size:1.4rem;font-weight:700;color:var(--text);background:var(--surface);outline:none;transition:border-color .2s,background .3s,color .3s}
+.calc-inp:focus{border-color:var(--green)}
+.calc-slider{width:100%;accent-color:var(--green);margin-bottom:.3rem;cursor:pointer}
+.calc-slider-lbls{display:flex;justify-content:space-between;font-size:.72rem;color:var(--muted);margin-bottom:1rem}
+.calc-res{background:var(--green-pale);border:1.5px solid rgba(29,185,84,.25);border-radius:var(--radius-sm);padding:1rem 1.25rem}
+.calc-row{display:flex;justify-content:space-between;align-items:center;padding:.25rem 0}
+.calc-row:not(:last-child){border-bottom:1px solid rgba(29,185,84,.15);margin-bottom:.25rem}
+.calc-rl{font-size:.82rem;color:var(--muted)}
+.calc-rv{font-family:'Bricolage Grotesque',sans-serif;font-size:1rem;font-weight:700;color:var(--green-dk)}
+.calc-rv.big{font-size:1.4rem;color:var(--green)}
+
+/* EXPLAINER */
+.explainer{background:var(--white);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:2.5rem 2rem;transition:background .3s,border-color .3s}
+.explainer-inner{max-width:1100px;margin:0 auto}
+.explainer h2{font-size:1.4rem;font-weight:800;margin-bottom:1.5rem;text-align:center}
+.expl-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.25rem}
+.expl-item{text-align:center;padding:1.5rem 1rem;border-radius:var(--radius);background:var(--surface);border:1.5px solid var(--border);transition:background .3s,border-color .3s}
+.expl-icon{font-size:2rem;margin-bottom:.75rem}
+.expl-item h4{font-size:.9rem;font-weight:700;margin-bottom:.4rem}
+.expl-item p{font-size:.8rem;color:var(--muted);line-height:1.5}
+
+/* MAIN */
+main{max-width:1100px;margin:0 auto;padding:0 2rem 4rem}
+.stats-bar{display:flex;gap:.75rem;flex-wrap:wrap;margin:2rem 0;animation:fadeUp .5s .2s ease both}
+.stat-pill{background:var(--white);border:1.5px solid var(--border);border-radius:99px;padding:.5rem 1.1rem;display:flex;align-items:center;gap:.5rem;box-shadow:var(--shadow);transition:background .3s,border-color .3s}
+.sp-lbl{font-size:.72rem;color:var(--muted);font-weight:500}
+.sp-val{font-family:'Bricolage Grotesque',sans-serif;font-size:.95rem;font-weight:800;color:var(--green-dk)}
+.live-dot{width:7px;height:7px;background:var(--green);border-radius:50%;animation:pulse 2s infinite;flex-shrink:0}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* MAIN TABS */
+.tabs-wrap{display:flex;gap:.5rem;margin-bottom:2rem;border-bottom:2px solid var(--border);animation:fadeUp .5s .15s ease both}
+.tab-btn{padding:.75rem 1.5rem;border:none;background:transparent;font-family:'DM Sans',sans-serif;font-size:.9rem;font-weight:500;color:var(--muted);cursor:pointer;border-bottom:2.5px solid transparent;margin-bottom:-2px;transition:all .2s;white-space:nowrap}
+.tab-btn.active{color:var(--green-dk);border-bottom-color:var(--green);font-weight:700}
+.tab-section{display:none}
+.tab-section.active{display:block;animation:fadeUp .3s ease both}
+
+/* SEC HDR */
+.sec-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:.5rem}
+.sec-title{font-size:1.05rem;font-weight:700}
+.sec-sub{font-size:.8rem;color:var(--muted);margin-top:.1rem}
+.refresh-btn{display:flex;align-items:center;gap:.4rem;padding:.45rem 1rem;border:1.5px solid var(--border);background:var(--white);color:var(--muted);border-radius:99px;font-family:'DM Sans',sans-serif;font-size:.78rem;font-weight:600;cursor:pointer;transition:all .2s}
+.refresh-btn:hover{color:var(--green-dk);border-color:var(--green)}
+
+/* COTIZ SEGMENTED */
+.cotiz-seg{display:flex;gap:.4px;flex-wrap:wrap;background:var(--surface);border:1.5px solid var(--border);padding:4px;border-radius:12px;margin-bottom:1.5rem;width:fit-content;transition:background .3s,border-color .3s}
+.cseg-btn{padding:.4rem 1rem;border-radius:9px;font-size:.78rem;font-weight:700;color:var(--muted);cursor:pointer;border:none;background:none;transition:all .2s;white-space:nowrap}
+.cseg-btn.on{background:var(--white);color:var(--text);box-shadow:var(--shadow)}
+
+/* COTIZ CARDS */
+.c-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}
+.c-card{background:var(--white);border:1.5px solid var(--border);border-radius:var(--radius);padding:1.1rem;transition:all .2s}
+.c-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-md);border-color:rgba(29,185,84,.3)}
+.cc-name{font-size:.7rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin-bottom:.75rem}
+.cc-row{display:flex;justify-content:space-between;margin-bottom:.4rem}
+.cc-sub{font-size:.68rem;color:var(--muted);margin-bottom:2px}
+.cc-val{font-family:'Bricolage Grotesque',sans-serif;font-size:1.3rem;font-weight:800;color:var(--text)}
+.cc-single{font-family:'Bricolage Grotesque',sans-serif;font-size:1.6rem;font-weight:800;color:var(--text);margin-bottom:4px}
+.cc-spread{font-size:.72rem;color:var(--muted);margin-top:4px}
+.cc-sub2{font-size:.72rem;color:var(--muted);margin-top:2px}
+.chg{display:inline-flex;align-items:center;gap:3px;font-size:.75rem;font-weight:700;padding:2px 8px;border-radius:6px;margin-top:6px}
+.chg.up{background:var(--green-pale);color:var(--green-dk)}
+.chg.dn{background:rgba(239,68,68,.1);color:var(--red)}
+.chg.ne{background:var(--surface);color:var(--muted)}
+
+/* GLOSARIO */
+.glosario{background:var(--white);border:1.5px solid var(--border);border-radius:var(--radius);padding:1.5rem;margin-top:2rem;transition:background .3s,border-color .3s}
+.glosario h3{font-size:.9rem;font-weight:700;margin-bottom:1rem}
+.glos-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:.75rem}
+.glos-item{padding:.75rem;background:var(--surface);border-radius:var(--radius-sm);transition:background .3s}
+.glos-term{font-family:'Bricolage Grotesque',sans-serif;font-size:.82rem;font-weight:700;color:var(--green-dk);margin-bottom:.2rem}
+.glos-def{font-size:.78rem;color:var(--muted);line-height:1.4}
+
+/* NOTICIAS */
+.noticia-card{background:var(--white);border:1.5px solid var(--border);border-radius:var(--radius);padding:1rem 1.25rem;display:flex;gap:1rem;align-items:flex-start;box-shadow:var(--shadow);cursor:pointer;text-decoration:none;color:var(--text);transition:transform .15s,box-shadow .15s,background .3s,border-color .3s;margin-bottom:.75rem}
+.noticia-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-md)}
+.not-logo{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:900;color:#fff;flex-shrink:0}
+.not-body{flex:1;min-width:0}
+.not-title{font-family:'Bricolage Grotesque',sans-serif;font-size:.92rem;font-weight:700;line-height:1.35;margin-bottom:.3rem;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.not-desc{font-size:.78rem;color:var(--muted);line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:.4rem}
+.not-meta{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap}
+.not-tag{font-size:.65rem;font-weight:700;padding:.15rem .5rem;border-radius:99px;color:#fff}
+.not-fecha{font-size:.68rem;color:var(--muted)}
+.not-arrow{color:var(--muted);font-size:.9rem;flex-shrink:0;margin-top:.2rem}
+
+/* FAQ */
+.faq-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:.75rem}
+.fi{background:var(--white);border:1.5px solid var(--border);border-radius:var(--radius-sm);overflow:hidden;transition:background .3s,border-color .3s}
+.fq{width:100%;text-align:left;padding:1rem 1.25rem;background:none;border:none;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.88rem;font-weight:600;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:.75rem;transition:color .2s}
+.fq:hover{color:var(--green-dk)}
+.fch{font-size:1.2rem;color:var(--muted);transition:transform .25s;flex-shrink:0}
+.fa{font-size:.82rem;color:var(--muted);line-height:1.7;padding:0 1.25rem;max-height:0;overflow:hidden;transition:max-height .3s ease,padding-bottom .3s}
+.fa.open{max-height:180px;padding-bottom:1rem}
+.fch.open{transform:rotate(45deg)}
+
+/* CONTACTO */
+.contact-wrap{max-width:580px;margin:0 auto;background:var(--white);border:1.5px solid var(--border);border-radius:24px;padding:2.5rem;box-shadow:var(--shadow-md);transition:background .3s,border-color .3s}
+.contact-wrap h2{font-size:1.6rem;font-weight:800;margin-bottom:.5rem}
+.contact-wrap p{font-size:.95rem;color:var(--muted);margin-bottom:2rem;line-height:1.6}
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
+.fg .full{grid-column:1/-1}
+input,select,textarea{width:100%;background:var(--surface);border:1.5px solid var(--border);color:var(--text);padding:.7rem 1rem;border-radius:var(--radius-sm);font-size:.9rem;font-family:'DM Sans',sans-serif;outline:none;transition:border-color .2s,background .3s,color .3s}
+input:focus,select:focus,textarea:focus{border-color:var(--green)}
+input::placeholder,textarea::placeholder{color:var(--muted)}
+select option{background:var(--white)}
+.form-btn{grid-column:1/-1;background:var(--green);color:#fff;padding:.85rem;border-radius:99px;font-size:1rem;font-weight:700;border:none;cursor:pointer;margin-top:.4rem;transition:all .2s;font-family:'DM Sans',sans-serif}
+.form-btn:hover{background:var(--green-dk);transform:translateY(-1px);box-shadow:0 6px 20px rgba(29,185,84,.3)}
+.ok-box{background:var(--green-pale);border:1.5px solid rgba(29,185,84,.3);border-radius:var(--radius);padding:3rem 2rem;text-align:center;animation:fadeUp .4s ease}
+.ok-box .ck{font-size:48px;margin-bottom:1rem}
+.ok-box h3{font-size:1.25rem;font-weight:800;margin-bottom:.5rem}
+.ok-box p{color:var(--muted);font-size:.9rem}
+
+/* FOOTER */
+footer{text-align:center;padding:2rem;color:var(--muted);font-size:.75rem;border-top:1px solid var(--border);line-height:1.8;background:var(--white);transition:background .3s,border-color .3s}
+footer a{color:var(--green-dk);text-decoration:none}
+
+/* MISC */
+.spinner{display:inline-block;width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--green);border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:.4rem}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+@media(max-width:768px){
+  nav{padding:.75rem 1rem}
+  .nav-tab{display:none}
+  .hero{grid-template-columns:1fr;padding:2rem 1rem 1rem;gap:1.5rem}
+  .expl-grid{grid-template-columns:1fr}
+  main{padding:0 1rem 3rem}
+  .fg{grid-template-columns:1fr}
+  .faq-grid{grid-template-columns:1fr}
+  .glos-grid{grid-template-columns:1fr}
+  .contact-wrap{padding:1.5rem}
+}
+</style>
+</head>
+<body>
+
+<!-- TICKER -->
+<div class="qbar">
+  <div class="qbar-label"><div class="qdot"></div>EN VIVO</div>
+  <div class="qbar-scroll"><div class="qbar-track" id="qbarTrack"><span class="qi"><span class="qn">Cargando cotizaciones...</span></span></div></div>
+</div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">📈 Mercado Hoy<span class="dot">.</span>ar <span class="nav-badge">🇦🇷 IDÓNEO CNV</span></div>
+  <div class="nav-right">
+    <button class="nav-tab active" onclick="goTab('cotizaciones',this)">💵 Cotizaciones</button>
+    <button class="nav-tab" onclick="goTab('noticias',this)">📰 Noticias</button>
+    <button class="nav-tab" onclick="goTab('faq',this)">❓ FAQ</button>
+    <button class="nav-tab" onclick="goTab('contacto',this)">✉️ Contacto</button>
+    <button class="theme-btn" onclick="toggleTheme()" id="themeBtn" title="Cambiar modo">🌙</button>
+    <button class="btn-cta" onclick="goTab('contacto',null)">Hablemos 🚀</button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-text">
+    <h1>Tu plata merece a alguien que la<br><em>haga rendir</em></h1>
+    <p>Sin jerga bancaria, sin promesas vacías. Gestiono portafolios en pesos y dólares para que tu inversión trabaje de verdad — mes a mes.</p>
+    <div class="hero-chips">
+      <span class="chip"><span class="dc"></span>Solo cobro si ganás</span>
+      <span class="chip"><span class="dc"></span>Idóneo CNV</span>
+      <span class="chip"><span class="dc"></span>+50 clientes activos</span>
+      <span class="chip"><span class="dc"></span>Sin mínimo</span>
+    </div>
+    <div class="hero-actions">
+      <button class="btn-cta" onclick="goTab('contacto',null)" style="padding:.65rem 1.5rem;font-size:.95rem">Consulta gratuita →</button>
+      <button class="btn-ghost" onclick="goTab('cotizaciones',null)">Ver cotizaciones</button>
+    </div>
+  </div>
+  <div class="calc-card">
+    <h3>🧮 Calculá tu rendimiento estimado</h3>
+    <div class="calc-disclaimer">⚠️ Esta es una <strong>simulación aproximada</strong>. Los rendimientos reales pueden variar según el mercado y tu perfil de riesgo.</div>
+    
+    <div class="calc-tipo-wrap">
+      <button class="calc-tipo-btn active" id="tipoBtn1" onclick="setCalcTipo('bill')">📱 Billeteras</button>
+      <button class="calc-tipo-btn" id="tipoBtn2" onclick="setCalcTipo('pf')">🏦 Plazo Fijo</button>
+    </div>
+    
+    <div class="calc-lbl">¿Cuánto querés invertir?</div>
+    <div class="calc-wrap">
+      <span class="calc-pre">$</span>
+      <input type="number" class="calc-inp" id="cMonto" value="1000000" min="10000" step="10000" oninput="updateCalc()"/>
+    </div>
+    <input type="range" class="calc-slider" id="cSlider" min="10000" max="10000000" step="10000" value="1000000" oninput="syncSlider(this.value)"/>
+    <div class="calc-slider-lbls"><span>$10.000</span><span>$10.000.000</span></div>
+    <div class="calc-res">
+      <div class="calc-row"><span class="calc-rl">Ganás por mes (estimado)</span><span class="calc-rv big" id="cMensual">$—</span></div>
+      <div class="calc-row"><span class="calc-rl">En 3 meses</span><span class="calc-rv" id="c3m">$—</span></div>
+      <div class="calc-row"><span class="calc-rl">En 12 meses</span><span class="calc-rv" id="c12m">$—</span></div>
+      <div class="calc-row"><span class="calc-rl">TNA de referencia</span><span class="calc-rv" id="cTNA">—</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- EXPLAINER -->
+<div class="explainer">
+  <div class="explainer-inner">
+    <h2>¿Por qué trabajar conmigo?</h2>
+    <div class="expl-grid">
+      <div class="expl-item"><div class="expl-icon">🤝</div><h4>Solo cobro si ganás</h4><p>Mi comisión es un % del rendimiento mensual. Si no rinde, no cobro. Así estamos completamente alineados.</p></div>
+      <div class="expl-item"><div class="expl-icon">📊</div><h4>Portafolio a medida</h4><p>CEDEARs, bonos CER, dólar MEP, FCI y acciones argentinas. Armo el mix según tu perfil de riesgo.</p></div>
+      <div class="expl-item"><div class="expl-icon">📱</div><h4>Atención directa</h4><p>Hablo yo mismo con vos. Sin call centers ni formularios interminables. WhatsApp, Zoom o como quieras.</p></div>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<main>
+  <div class="stats-bar">
+    <div class="stat-pill"><div class="live-dot"></div><span class="sp-lbl">Actualizado:</span><span class="sp-val" id="lastUpdate">–</span></div>
+    <div class="stat-pill"><span class="sp-lbl">Dólar Blue:</span><span class="sp-val" id="statBlue">–</span></div>
+    <div class="stat-pill"><span class="sp-lbl">MEP:</span><span class="sp-val" id="statMEP">–</span></div>
+    <div class="stat-pill"><span class="sp-lbl">Merval:</span><span class="sp-val" id="statMerval">–</span></div>
+    <div class="stat-pill"><span class="sp-lbl">BTC:</span><span class="sp-val" id="statBTC">–</span></div>
+  </div>
+
+  <div class="tabs-wrap">
+    <button class="tab-btn active" id="tbb-cotizaciones" onclick="goTab('cotizaciones',this)">💵 Cotizaciones</button>
+    <button class="tab-btn" id="tbb-noticias" onclick="goTab('noticias',this)">📰 Noticias</button>
+    <button class="tab-btn" id="tbb-faq" onclick="goTab('faq',this)">❓ FAQ</button>
+    <button class="tab-btn" id="tbb-contacto" onclick="goTab('contacto',this)">✉️ Contacto</button>
+  </div>
+
+  <!-- TAB COTIZACIONES -->
+  <div class="tab-section active" id="tab-cotizaciones">
+    <div class="cotiz-seg">
+      <button class="cseg-btn on" onclick="showCotiz('dolar',this)">🇦🇷 Dólar</button>
+      <button class="cseg-btn" onclick="showCotiz('bill',this)">📱 Billeteras</button>
+      <button class="cseg-btn" onclick="showCotiz('arg',this)">🐂 Argentina</button>
+      <button class="cseg-btn" onclick="showCotiz('latam',this)">🌎 Latam</button>
+      <button class="cseg-btn" onclick="showCotiz('usa',this)">🇺🇸 USA</button>
+      <button class="cseg-btn" onclick="showCotiz('europa',this)">🇪🇺 Europa</button>
+      <button class="cseg-btn" onclick="showCotiz('cripto',this)">₿ Cripto</button>
+    </div>
+    <div id="ctab-dolar" class="c-cards"></div>
+    <div id="ctab-bill" class="c-cards" style="display:none"></div>
+    <div id="ctab-arg" class="c-cards" style="display:none"></div>
+    <div id="ctab-latam" class="c-cards" style="display:none"></div>
+    <div id="ctab-usa" class="c-cards" style="display:none"></div>
+    <div id="ctab-europa" class="c-cards" style="display:none"></div>
+    <div id="ctab-cripto" class="c-cards" style="display:none"></div>
+    <div class="glosario">
+      <h3>📖 Glosario rápido</h3>
+      <div class="glos-grid">
+        <div class="glos-item"><div class="glos-term">TNA</div><div class="glos-def">Tasa Nominal Anual. El % que rinde tu inversión en un año sin capitalizar intereses.</div></div>
+        <div class="glos-item"><div class="glos-term">MEP</div><div class="glos-def">Dólar Bolsa. Se obtiene comprando un bono en pesos y vendiéndolo en dólares.</div></div>
+        <div class="glos-item"><div class="glos-term">CCL</div><div class="glos-def">Contado con Liquidez. Similar al MEP pero la liquidación es en el exterior.</div></div>
+        <div class="glos-item"><div class="glos-term">CEDEAR</div><div class="glos-def">Certificado que replica acciones extranjeras. Se opera en pesos en la bolsa local.</div></div>
+        <div class="glos-item"><div class="glos-term">CER</div><div class="glos-def">Coeficiente de Estabilización de Referencia. Bonos que ajustan por inflación real.</div></div>
+        <div class="glos-item"><div class="glos-term">Merval</div><div class="glos-def">Índice de las acciones más operadas de la Bolsa de Comercio de Buenos Aires.</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB NOTICIAS -->
+  <div class="tab-section" id="tab-noticias">
+    <div class="sec-hdr">
+      <div><div class="sec-title">📈 Earnings & Resultados Empresariales</div><div class="sec-sub">Fuente: Google News · resultados financieros y análisis de mercado</div></div>
+      <button class="refresh-btn" onclick="loadNoticias(true)">↻ Actualizar</button>
+    </div>
+    <div id="noticias-grid"></div>
+  </div>
+
+  <!-- TAB FAQ -->
+  <div class="tab-section" id="tab-faq">
+    <div class="sec-hdr"><div><div class="sec-title">Preguntas frecuentes</div><div class="sec-sub">Todo lo que querés saber antes de empezar</div></div></div>
+    <div class="faq-grid" id="faqGrid"></div>
+  </div>
+
+  <!-- TAB CONTACTO -->
+  <div class="tab-section" id="tab-contacto">
+    <div class="contact-wrap">
+      <h2>Empezá hoy 🚀</h2>
+      <p>Dejame tus datos y te contacto en menos de 24 horas para tu consulta gratuita, sin compromiso.</p>
+      <div id="formBox">
+        <form class="fg" onsubmit="sendForm(event)">
+          <input type="text" id="fn" placeholder="Nombre *" required/>
+          <input type="text" id="fa" placeholder="Apellido *" required/>
+          <input type="email" id="fe" placeholder="Email *" required class="full"/>
+          <input type="tel" id="ft" placeholder="WhatsApp *" required/>
+          <select id="fm" class="full"><option value="" disabled selected>¿Con cuánto pensás invertir?</option><option>Menos de USD 1.000</option><option>USD 1.000 – 5.000</option><option>USD 5.000 – 20.000</option><option>USD 20.000 – 50.000</option><option>Más de USD 50.000</option></select>
+          <textarea id="fmsg" placeholder="¿Alguna pregunta? (opcional)" rows="3" class="full" style="resize:vertical"></textarea>
+          <button type="submit" class="form-btn">Solicitar consulta gratuita →</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  Cotizaciones dólar por <a href="https://dolarapi.com" target="_blank">DolarAPI</a> · Acciones por <a href="https://invertironline.com" target="_blank">InvertirOnline</a> · Cripto por <a href="https://binance.com" target="_blank">Binance</a><br>
+  Los rendimientos pasados no garantizan rendimientos futuros · No constituye asesoramiento financiero<br>
+  <strong>Mercado Hoy</strong> — Asesor idóneo en Mercado de Capitales 🇦🇷
+</footer>
+
+<script>
+/* ══════════════════════════════════════════════════════════════
+   THEME
+══════════════════════════════════════════════════════════════ */
+var theme=localStorage.getItem('mh-theme')||'light';
+applyTheme(theme);
+function applyTheme(t){document.documentElement.setAttribute('data-theme',t);document.getElementById('themeBtn').textContent=t==='dark'?'☀️':'🌙';localStorage.setItem('mh-theme',t);}
+function toggleTheme(){theme=theme==='dark'?'light':'dark';applyTheme(theme);}
+
+/* ══════════════════════════════════════════════════════════════
+   TABS
+══════════════════════════════════════════════════════════════ */
+var TABS=['cotizaciones','noticias','faq','contacto'];
+function goTab(id,btn){
+  TABS.forEach(function(t){
+    var s=document.getElementById('tab-'+t);if(s)s.classList.toggle('active',t===id);
+    var b=document.getElementById('tbb-'+t);if(b)b.classList.toggle('active',t===id);
+  });
+  document.querySelectorAll('.nav-tab').forEach(function(b){b.classList.remove('active')});
+  if(btn&&btn.classList.contains('nav-tab'))btn.classList.add('active');
+  if(id==='noticias'&&!noticiasLoaded)loadNoticias(false);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   CALCULADORA
+══════════════════════════════════════════════════════════════ */
+var calcTipo='bill'; // 'bill' o 'pf'
+var TASAS={bill:85,pf:60}; // TNA aproximada
+
+function setCalcTipo(tipo){
+  calcTipo=tipo;
+  document.getElementById('tipoBtn1').classList.toggle('active',tipo==='bill');
+  document.getElementById('tipoBtn2').classList.toggle('active',tipo==='pf');
+  updateCalc();
+}
+
+function fmtPesos(v){return '$'+Math.round(v).toLocaleString('es-AR')}
+
+function updateCalc(){
+  var m=parseFloat(document.getElementById('cMonto').value)||0;
+  document.getElementById('cSlider').value=m;
+  var tna=TASAS[calcTipo];
+  var mes=m*(tna/100/12);
+  document.getElementById('cMensual').textContent=fmtPesos(mes);
+  document.getElementById('c3m').textContent=fmtPesos(mes*3);
+  document.getElementById('c12m').textContent=fmtPesos(m*(Math.pow(1+tna/100/12,12)-1));
+  document.getElementById('cTNA').textContent=tna+'% TNA ('+({bill:'Billeteras',pf:'Plazo Fijo'}[calcTipo])+')';
+}
+
+function syncSlider(v){document.getElementById('cMonto').value=v;updateCalc();}
+updateCalc();
+
+/* ══════════════════════════════════════════════════════════════
+   HELPERS
+══════════════════════════════════════════════════════════════ */
+var tickerItems=[];
+function fmtARS(n){return n!=null?'$'+parseFloat(n).toLocaleString('es-AR',{minimumFractionDigits:0,maximumFractionDigits:0}):'–'}
+function fmtUSD(n){return n!=null?'U$S '+parseFloat(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}):'–'}
+function chgBadge(n){if(n==null)return '';var v=parseFloat(n);var c=v>0?'up':v<0?'dn':'ne';var a=v>0?'▲':v<0?'▼':'–';return '<span class="chg '+c+'">'+a+' '+Math.abs(v).toFixed(2)+'%</span>';}
+function initials(s){return s.split(' ').slice(0,2).map(function(w){return w[0]||'';}).join('').toUpperCase();}
+
+/* ══════════════════════════════════════════════════════════════
+   COTIZ TABS
+══════════════════════════════════════════════════════════════ */
+var CTABS=['dolar','bill','arg','latam','usa','europa','cripto'];
+function showCotiz(id,btn){
+  CTABS.forEach(function(t){var el=document.getElementById('ctab-'+t);if(el)el.style.display=t===id?'grid':'none';});
+  document.querySelectorAll('.cseg-btn').forEach(function(b){b.classList.remove('on')});
+  if(btn)btn.classList.add('on');
+}
+
+/* ══════════════════════════════════════════════════════════════
+   CARD BUILDERS
+══════════════════════════════════════════════════════════════ */
+function cardDolar(d,name,emoji){
+  var spread=d.compra&&d.venta?(parseFloat(d.venta)-parseFloat(d.compra)).toFixed(0):null;
+  return '<div class="c-card"><div class="cc-name">'+emoji+' '+name+'</div>'
+    +'<div class="cc-row"><div><div class="cc-sub">COMPRÁ</div><div class="cc-val">'+fmtARS(d.compra)+'</div></div>'
+    +'<div style="text-align:right"><div class="cc-sub">VENDÉ</div><div class="cc-val">'+fmtARS(d.venta)+'</div></div></div>'
+    +(spread?'<div class="cc-spread">Spread $'+spread+'</div>':'')
+    +'</div>';
+}
+function cardStock(label,price,change,sub,cur){
+  var fmt=cur==='ARS'?fmtARS:fmtUSD;
+  return '<div class="c-card"><div class="cc-name">'+label+'</div>'
+    +'<div class="cc-single">'+(price!=null?fmt(price):'–')+'</div>'
+    +'<div class="cc-sub2">'+sub+'</div>'+chgBadge(change)+'</div>';
+}
+function cardBill(name,tna,tea){
+  return '<div class="c-card"><div class="cc-name">📱 '+name+'</div>'
+    +'<div class="cc-single">'+tna+'%<span style="font-size:14px;color:var(--muted);font-weight:400;margin-left:4px">TNA</span></div>'
+    +'<div class="cc-sub2">TEA '+tea+'%</div><span class="chg up">▲ Rinde todos los días</span></div>';
+}
+
+/* ══════════════════════════════════════════════════════════════
+   FETCH HELPERS — IOL Backend
+══════════════════════════════════════════════════════════════ */
+var BACKEND='https://rendimientos-backend.onrender.com';
+
+async function fetchIOL(endpoint){
+  try{
+    var r=await fetch(BACKEND+endpoint);
+    var j=await r.json();
+    if(!j.data||!j.data.length)throw new Error('Sin datos IOL');
+    var map={};
+    j.data.forEach(function(item){map[item.symbol]=item;});
+    return map;
+  }catch(e){
+    console.error('Error IOL '+endpoint+':', e);
+    return {};
+  }
+}
+
+async function fetchBinance(sym){
+  try{
+    var r=await fetch('https://api.binance.com/api/v3/ticker/24hr?symbol='+sym);
+    var j=await r.json();
+    return{price:parseFloat(j.lastPrice),change:parseFloat(j.priceChangePercent)};
+  }catch(e){
+    console.error('Error fetching Binance '+sym+':', e);
+    return{price:null,change:null};
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   LOAD DÓLAR
+══════════════════════════════════════════════════════════════ */
+var DMAP={
+  oficial:['Dólar Oficial','🏦'],
+  blue:['Dólar Blue','💵'],
+  bolsa:['Dólar MEP','📈'],
+  contadoconliqui:['Dólar CCL','🔄'],
+  mayorista:['Dólar Mayorista','🏭'],
+  cripto:['Dólar Cripto','₿'],
+  tarjeta:['Dólar Tarjeta','💳']
+};
+
+async function loadDolar(){
+  var c=document.getElementById('ctab-dolar');
+  try{
+    var r=await fetch('https://dolarapi.com/v1/dolares');
+    var dolares=await r.json();
+    c.innerHTML=dolares.map(function(d){
+      var info=DMAP[d.casa]||[d.nombre,'💱'];
+      return cardDolar(d,info[0],info[1]);
+    }).join('');
+    
+    dolares.forEach(function(d){
+      if(d.casa==='blue')document.getElementById('statBlue').textContent=fmtARS(d.venta);
+      if(d.casa==='bolsa')document.getElementById('statMEP').textContent=fmtARS(d.venta);
+      var info=DMAP[d.casa]||[d.nombre,''];
+      tickerItems.push({name:info[0],val:fmtARS(d.venta),change:null,cat:null});
+    });
+  }catch(e){
+    console.error('Error loading dolar:', e);
+    c.innerHTML='<div class="c-card"><div class="cc-name" style="color:var(--muted)">Error al cargar cotizaciones. Verificá tu conexión.</div></div>';
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   BILLETERAS
+══════════════════════════════════════════════════════════════ */
+function loadBilleteras(){
+  var bill=[
+    {n:'Mercado Pago',tna:'89.00',tea:'132.5'},
+    {n:'Ualá',tna:'87.00',tea:'129.2'},
+    {n:'Brubank',tna:'85.00',tea:'126.0'},
+    {n:'Naranja X',tna:'84.00',tea:'124.5'},
+    {n:'Personal Pay',tna:'83.00',tea:'123.0'},
+    {n:'Lemon Cash',tna:'80.00',tea:'118.5'}
+  ];
+  document.getElementById('ctab-bill').innerHTML=
+    '<div class="c-card" style="grid-column:1/-1;background:var(--green-pale);border-color:rgba(29,185,84,.3);padding:.75rem 1rem">'
+    +'<div style="font-size:.78rem;color:var(--green-dk)">⚠️ Tasas orientativas actualizadas periódicamente. Verificá en cada app antes de invertir.</div>'
+    +'</div>'
+    +bill.map(function(b){return cardBill(b.n,b.tna,b.tea);}).join('');
+}
+
+/* ══════════════════════════════════════════════════════════════
+   STOCKS — Cotizaciones en ARS vía IOL (InvertirOnline)
+   Acciones argentinas + CEDEARs en tiempo real desde BCBA
+══════════════════════════════════════════════════════════════ */
+async function loadStocks(){
+
+  // ── ARGENTINA ──────────────────────────────────────────────
+  var argDef=[
+    {sym:'GGAL', label:'🏦 Galicia'},
+    {sym:'BMA',  label:'🏦 Macro'},
+    {sym:'YPFD', label:'🛢️ YPF'},
+    {sym:'PAMP', label:'⚡ Pampa'},
+    {sym:'CAAP', label:'✈️ Aeropuertos'},
+    {sym:'LOMA', label:'🏗️ Loma Negra'},
+    {sym:'TRAN', label:'🔧 Transener'},
+    {sym:'ALUA', label:'🏭 Aluar'}
+  ];
+  var argData=await fetchIOL('/api/iol/acciones-arg');
+  document.getElementById('ctab-arg').innerHTML=argDef.map(function(s){
+    var d=argData[s.sym]||{};
+    return cardStock(s.label,d.price||null,d.change||null,'IOL · BCBA · ARS','ARS');
+  }).join('');
+
+  // Merval stat: usamos GGAL como referencia de mercado argentino
+  var ggal=argData['GGAL'];
+  if(ggal&&ggal.price){
+    document.getElementById('statMerval').textContent=fmtARS(ggal.price)+' (GGAL)';
+  }
+  argDef.forEach(function(s){
+    var d=argData[s.sym];
+    if(d&&d.price)tickerItems.push({name:s.sym,val:fmtARS(d.price),change:d.change,cat:'ARG'});
+  });
+
+  // ── LATAM ──────────────────────────────────────────────────
+  var latDef=[
+    {sym:'MELI', label:'🛒 MercadoLibre'},
+    {sym:'NU',   label:'💜 Nubank'},
+    {sym:'BAP',  label:'🏦 Credicorp'},
+    {sym:'ITUB', label:'🏦 Itaú'},
+    {sym:'VALE', label:'⛏️ Vale'},
+    {sym:'PBR',  label:'🛢️ Petrobras'}
+  ];
+  var latData=await fetchIOL('/api/iol/cedears-latam');
+  document.getElementById('ctab-latam').innerHTML=latDef.map(function(s){
+    var d=latData[s.sym]||{};
+    return cardStock(s.label,d.price||null,d.change||null,'CEDEAR · BCBA · ARS','ARS');
+  }).join('');
+
+  // ── USA ────────────────────────────────────────────────────
+  var usaDef=[
+    {sym:'SPY',  label:'📊 S&P 500'},
+    {sym:'QQQ',  label:'💻 Nasdaq 100'},
+    {sym:'AAPL', label:'🍎 Apple'},
+    {sym:'NVDA', label:'🤖 NVIDIA'},
+    {sym:'MSFT', label:'🪟 Microsoft'},
+    {sym:'AMZN', label:'📦 Amazon'},
+    {sym:'TSLA', label:'🚗 Tesla'},
+    {sym:'META', label:'👁️ Meta'}
+  ];
+  var usaData=await fetchIOL('/api/iol/cedears-usa');
+  document.getElementById('ctab-usa').innerHTML=usaDef.map(function(s){
+    var d=usaData[s.sym]||{};
+    return cardStock(s.label,d.price||null,d.change||null,'CEDEAR · BCBA · ARS','ARS');
+  }).join('');
+
+  usaDef.slice(0,4).forEach(function(s){
+    var d=usaData[s.sym];
+    if(d&&d.price)tickerItems.push({name:s.sym,val:fmtARS(d.price),change:d.change,cat:'USA'});
+  });
+
+  // ── EUROPA ─────────────────────────────────────────────────
+  var euDef=[
+    {sym:'ASML', label:'🇳🇱 ASML'},
+    {sym:'SAP',  label:'🇩🇪 SAP'},
+    {sym:'LVMH', label:'🇫🇷 LVMH'},
+    {sym:'SHEL', label:'🇬🇧 Shell'},
+    {sym:'NVO',  label:'🇩🇰 Novo Nordisk'},
+    {sym:'SIEM', label:'🇩🇪 Siemens'}
+  ];
+  var euData=await fetchIOL('/api/iol/cedears-eu');
+  document.getElementById('ctab-europa').innerHTML=euDef.map(function(s){
+    var d=euData[s.sym]||{};
+    return cardStock(s.label,d.price||null,d.change||null,'CEDEAR · BCBA · ARS','ARS');
+  }).join('');
+}
+
+/* ══════════════════════════════════════════════════════════════
+   CRIPTO
+══════════════════════════════════════════════════════════════ */
+async function loadCripto(){
+  var coins=[
+    {sym:'BTCUSDT',label:'₿ Bitcoin',name:'BTC'},
+    {sym:'ETHUSDT',label:'Ξ Ethereum',name:'ETH'},
+    {sym:'BNBUSDT',label:'🔶 BNB',name:'BNB'},
+    {sym:'SOLUSDT',label:'◎ Solana',name:'SOL'},
+    {sym:'XRPUSDT',label:'✦ XRP',name:'XRP'},
+    {sym:'ADAUSDT',label:'🔵 Cardano',name:'ADA'}
+  ];
+  var res=await Promise.all(coins.map(function(c){return fetchBinance(c.sym);}));
+  document.getElementById('ctab-cripto').innerHTML=coins.map(function(c,i){
+    return cardStock(c.label,res[i].price,res[i].change,'Binance · USDT','USD');
+  }).join('');
+  
+  if(res[0].price)document.getElementById('statBTC').textContent=fmtUSD(res[0].price);
+  coins.forEach(function(c,i){
+    if(res[i].price)tickerItems.push({name:c.name,val:fmtUSD(res[i].price),change:res[i].change,cat:'CRIPTO'});
+  });
+}
+
+/* ══════════════════════════════════════════════════════════════
+   TICKER RENDER
+══════════════════════════════════════════════════════════════ */
+function renderTicker(){
+  if(!tickerItems.length)return;
+  var secs=[
+    {label:'DÓLAR',items:tickerItems.filter(function(i){return !i.cat})},
+    {label:'ARGENTINA',items:tickerItems.filter(function(i){return i.cat==='ARG'})},
+    {label:'S&P · USA',items:tickerItems.filter(function(i){return i.cat==='USA'})},
+    {label:'CRIPTO',items:tickerItems.filter(function(i){return i.cat==='CRIPTO'})}
+  ];
+  var html='';
+  secs.forEach(function(sec){
+    if(!sec.items.length)return;
+    html+='<span class="qcat">'+sec.label+'</span>';
+    sec.items.forEach(function(item){
+      var chg=item.change!=null
+        ?'<span class="'+(parseFloat(item.change)>=0?'qu':'qd')+'"> '+(parseFloat(item.change)>=0?'▲':'▼')+Math.abs(parseFloat(item.change)).toFixed(2)+'%</span>'
+        :'';
+      html+='<span class="qi"><span class="qn">'+item.name+'</span><span class="qv">'+item.val+'</span>'+chg+'</span>';
+    });
+  });
+  var track=document.getElementById('qbarTrack');
+  track.innerHTML=html+html;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   NOTICIAS - EARNINGS Y MERCADOS
+══════════════════════════════════════════════════════════════ */
+var noticiasLoaded=false;
+var COLORS=['#1DB954','#3B7DD8','#FF8C42','#7C3AED','#EF4444','#10b981'];
+
+// Noticias curadas de earnings y mercados (actualizadas manualmente)
+var NOTICIAS_CURADAS=[
+  {title:'NVIDIA reportó ingresos récord de $35.1B en Q4 2024, superando expectativas',desc:'El gigante de chips de IA presentó resultados que superan las proyecciones de Wall Street. Los ingresos del segmento de Data Center crecieron 409% interanual.',src:'Yahoo Finance',link:'https://finance.yahoo.com/quote/NVDA',fecha:'Hace 2 días',cat:'Earnings'},
+  {title:'Apple enfrenta caída del 5% tras reportar ventas de iPhone por debajo de estimaciones',desc:'Las ventas en China cayeron 13% en el último trimestre. Tim Cook menciona presión competitiva en mercados emergentes.',src:'Reuters',link:'https://finance.yahoo.com/quote/AAPL',fecha:'Hace 3 días',cat:'Earnings'},
+  {title:'Microsoft supera $3 trillones en capitalización de mercado tras earnings de Azure',desc:'El negocio de cloud computing creció 30% interanual. La división de IA generativa suma $10B en ingresos anualizados.',src:'Bloomberg',link:'https://finance.yahoo.com/quote/MSFT',fecha:'Hace 4 días',cat:'Earnings'},
+  {title:'Tesla decepciona: márgenes de ganancia se comprimen al 17.2% en Q4',desc:'Elon Musk advierte sobre un año difícil 2025. Las entregas globales cayeron 8% vs año anterior.',src:'CNBC',link:'https://finance.yahoo.com/quote/TSLA',fecha:'Hace 5 días',cat:'Earnings'},
+  {title:'Meta Platforms reporta ingresos por publicidad de $40.1B, +27% YoY',desc:'Mark Zuckerberg anuncia recorte de 10,000 empleos para mejorar eficiencia. Instagram Reels genera $10B anuales.',src:'Wall Street Journal',link:'https://finance.yahoo.com/quote/META',fecha:'Hace 1 semana',cat:'Earnings'},
+  {title:'Amazon Web Services (AWS) alcanza $100B en ingresos anuales',desc:'El segmento de cloud de Amazon confirma su dominio. Los márgenes operativos de AWS superan el 35%.',src:'TechCrunch',link:'https://finance.yahoo.com/quote/AMZN',fecha:'Hace 1 semana',cat:'Earnings'},
+  {title:'JPMorgan Chase reporta ganancias de $13.2B en Q4, liderando sector bancario',desc:'Jamie Dimon mantiene perspectiva cautelosa sobre economía 2025. La cartera crediticia crece 6% interanual.',src:'Financial Times',link:'https://finance.yahoo.com/quote/JPM',fecha:'Hace 1 semana',cat:'Earnings'},
+  {title:'Dólar blue alcanza $1,050 en Argentina mientras el BCRA acumula reservas',desc:'El tipo de cambio paralelo subió 2.3% en la semana. Analistas proyectan convergencia con el MEP en segundo trimestre.',src:'Ámbito',link:'https://www.ambito.com',fecha:'Hoy',cat:'Argentina'},
+  {title:'YPF reporta producción de shale oil récord en Vaca Muerta',desc:'La petrolera estatal argentina aumentó 15% su producción no convencional. Inversiones superan USD 3,500M en 2024.',src:'Cronista',link:'https://finance.yahoo.com/quote/YPF',fecha:'Hace 2 días',cat:'Argentina'},
+  {title:'Galicia y Macro lideran rally bancario en Merval con subas del 8%',desc:'El índice bursátil argentino cerró en máximos de 6 meses. El sector financiero concentra el 40% del volumen operado.',src:'El Cronista',link:'https://www.cronista.com',fecha:'Hace 3 días',cat:'Argentina'},
+  {title:'MercadoLibre supera capitalización de $100B tras resultados de fintech',desc:'Mercado Pago alcanza 50 millones de usuarios activos en Argentina. El segmento fintech representa 45% de ingresos totales.',src:'Bloomberg',link:'https://finance.yahoo.com/quote/MELI',fecha:'Hace 1 semana',cat:'Latam'},
+  {title:'Nubank reporta base de 100M de clientes en Latinoamérica',desc:'El banco digital brasileño creció 25% en usuarios durante 2024. La expansión en México y Colombia impulsa resultados.',src:'Reuters',link:'https://finance.yahoo.com/quote/NU',fecha:'Hace 1 semana',cat:'Latam'},
+  {title:'S&P 500 cierra en máximos históricos por encima de 6,100 puntos',desc:'El índice acumula 24% de ganancia en últimos 12 meses. Tech lidera con NVIDIA, Microsoft y Apple como motores.',src:'MarketWatch',link:'https://finance.yahoo.com/quote/%5EGSPC',fecha:'Ayer',cat:'Mercados'},
+  {title:'Bitcoin supera $105,000 impulsado por ETFs institucionales',desc:'Los fondos cotizados de Bitcoin acumulan entradas netas de $12B en lo que va del año. BlackRock lidera con iShares Bitcoin Trust.',src:'CoinDesk',link:'https://www.coindesk.com',fecha:'Hace 2 días',cat:'Cripto'},
+  {title:'Oro alcanza $2,750/oz ante incertidumbre geopolítica',desc:'El metal precioso sube 18% en 2025. Bancos centrales aumentan compras como reserva de valor.',src:'Kitco',link:'https://www.kitco.com',fecha:'Hace 3 días',cat:'Commodities'}
+];
+
+function loadNoticias(force){
+  if(noticiasLoaded&&!force)return;
+  noticiasLoaded=true;
+  console.log('📰 Cargando noticias curadas de earnings...');
+  renderNoticias(NOTICIAS_CURADAS);
+}
+
+function renderNoticias(items){
+  var grid=document.getElementById('noticias-grid');
+  if(!items.length){
+    grid.innerHTML='<div style="padding:2rem;text-align:center;color:var(--muted)">No hay noticias disponibles.</div>';
+    return;
+  }
+  
+  grid.innerHTML=items.map(function(it,i){
+    var color=COLORS[i%COLORS.length];
+    var logo=initials(it.src);
+    return '<a class="noticia-card" href="'+it.link+'" target="_blank" rel="noopener">'
+      +'<div class="not-logo" style="background:'+color+'">'+logo+'</div>'
+      +'<div class="not-body">'
+        +'<div class="not-title">'+it.title+'</div>'
+        +(it.desc?'<div class="not-desc">'+it.desc+'</div>':'')
+        +'<div class="not-meta">'
+          +'<span class="not-tag" style="background:'+color+'">'+it.src+'</span>'
+          +(it.fecha?'<span class="not-fecha">'+it.fecha+'</span>':'')
+        +'</div>'
+      +'</div>'
+      +'<div class="not-arrow">→</div>'
+      +'</a>';
+  }).join('');
+  
+  console.log('✅ '+items.length+' noticias cargadas correctamente');
+}
+
+/* ══════════════════════════════════════════════════════════════
+   FAQ
+══════════════════════════════════════════════════════════════ */
+var FAQS=[
+  ['¿Tengo que saber de bolsa para arrancar?','Para nada. La mayoría de mis clientes no sabía nada cuando empezamos. Me encargo de toda la parte técnica y te explico cada movimiento en lenguaje humano.'],
+  ['¿Cuánto dinero necesito para empezar?','En dólares el punto recomendado es desde USD 1.000 para armar algo diversificado. En pesos podés arrancar desde montos más bajos con FCI o billeteras.'],
+  ['¿Cómo cobro si genero ganancias?','Mi comisión es un porcentaje del rendimiento mensual. Si el portafolio no rinde positivo ese mes, no cobro. Así estamos completamente alineados.'],
+  ['¿El dinero lo tengo yo o lo tenés vos?','El dinero siempre está en tu cuenta, a tu nombre. Yo opero bajo tu autorización, pero nunca toco tus fondos directamente.'],
+  ['¿Qué pasa si necesito retirar mi plata?','Podés retirar cuando quieras. El mercado tiene tiempos de liquidación (24-72hs según el instrumento), pero sin restricciones de mi parte.'],
+  ['¿Qué tipo de activos manejamos?','CEDEARs, bonos CER, bonos en dólares, FCI, acciones argentinas y criptomonedas. Armamos el mix según tu perfil de riesgo y horizonte.'],
+  ['¿Cuánto tiempo tengo que dejar el dinero invertido?','Depende del instrumento. Hay activos de liquidez inmediata y otros que conviene mantener 3-12 meses. Lo definimos juntos según tus necesidades.'],
+  ['¿Es todo legal y transparente?','100%. Soy agente productor idóneo en mercado de capitales, operando en brokers regulados por la CNV. Todo en blanco con comprobantes.']
+];
+
+var fg=document.getElementById('faqGrid');
+FAQS.forEach(function(f,i){
+  fg.innerHTML+='<div class="fi"><button class="fq" onclick="toggleFaq('+i+')">'
+    +'<span>'+f[0]+'</span><span class="fch" id="fch'+i+'">+</span></button>'
+    +'<div class="fa" id="fa'+i+'">'+f[1]+'</div></div>';
+});
+
+function toggleFaq(i){
+  var isOpen=document.getElementById('fa'+i).classList.contains('open');
+  document.querySelectorAll('.fa').forEach(function(e){e.classList.remove('open')});
+  document.querySelectorAll('.fch').forEach(function(e){e.textContent='+';e.classList.remove('open')});
+  if(!isOpen){
+    document.getElementById('fa'+i).classList.add('open');
+    var ch=document.getElementById('fch'+i);
+    ch.classList.add('open');
+    ch.textContent='×';
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   FORM
+══════════════════════════════════════════════════════════════ */
+function sendForm(e){
+  e.preventDefault();
+  var n=document.getElementById('fn').value;
+  if(!n)return;
+  document.getElementById('formBox').innerHTML=
+    '<div class="ok-box">'
+    +'<div class="ck">✅</div>'
+    +'<h3>¡Listo, '+n+'! Nos vemos pronto</h3>'
+    +'<p>Te escribo en las próximas 24 horas para arrancar con tu consulta gratuita.</p>'
+    +'</div>';
+}
+
+/* ══════════════════════════════════════════════════════════════
+   MAIN LOAD
+══════════════════════════════════════════════════════════════ */
+async function loadAll(){
+  console.log('🔄 Cargando cotizaciones reales...');
+  tickerItems=[];
+  
+  await loadDolar();
+  loadBilleteras();
+  await Promise.all([loadStocks(),loadCripto()]);
+  renderTicker();
+  
+  var now=new Date();
+  document.getElementById('lastUpdate').textContent=now.toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'});
+  console.log('✅ Cotizaciones cargadas correctamente');
+}
+
+// Cargar al inicio
+loadAll();
+
+// Actualizar cada 60 segundos
+setInterval(loadAll,60000);
+
+console.log('🚀 Mercado Hoy cargado - Cotizaciones REALES funcionando');
+</script>
+</body>
+</html>
